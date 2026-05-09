@@ -9,846 +9,212 @@
 <meta name="theme-color" content="#1a1410">
 <title>Lectură</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=IM+Fell+English:ital@0;1&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=Lora:ital,wght@0,400;0,500;1,400&family=Merriweather:ital,wght@0,300;0,400;1,300&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
-
-<!-- Libraries -->
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=Lora:ital,wght@0,400;1,400&family=Merriweather:ital,wght@0,300;0,400;1,300&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js"></script>
-
-<!-- Firebase -->
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
-    from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
-  import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc }
-    from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
-
-  // ══ FIREBASE CONFIG ══
-  // Înlocuiește cu datele tale din Firebase Console
-  const firebaseConfig = {
-    apiKey: "AIzaSyA5gtr-dyzd_nrW7Qn8mID_866lm1djGas",
-    authDomain: "books-cosmin.firebaseapp.com",
-    projectId: "books-cosmin",
-    storageBucket: "books-cosmin.firebasestorage.app",
-    messagingSenderId: "437758651461",
-    appId: "1:437758651461:web:a6b4e31b2b6ddc5baf472c"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const provider = new GoogleAuthProvider();
-
-  window._fb = { auth, db, provider, signInWithPopup, signOut, onAuthStateChanged, doc, setDoc, getDoc, collection, getDocs, deleteDoc };
-</script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 :root {
-  /* Teme citit */
-  --bg: #f7f2e8;
-  --text: #2a1f0e;
-  --accent: #8b5e2a;
-  --accent2: #c4945a;
-  --muted: #9a8a72;
-  --surface: rgba(247,242,232,0.95);
-  --border: rgba(139,94,42,0.15);
-  --shadow: rgba(42,31,14,0.15);
+  --bg:#f7f2e8; --text:#2a1f0e; --accent:#8b5e2a; --accent2:#c4945a;
+  --muted:#9a8a72; --surface:rgba(247,242,232,0.96); --border:rgba(139,94,42,0.15);
+  --shadow:rgba(42,31,14,0.15);
+  --font-body:'Crimson Pro',Georgia,serif;
+  --font-display:'Cormorant Garamond',Georgia,serif;
+}
+body.t-sepia  { --bg:#f5ead0;--text:#3d2b0e;--surface:rgba(245,234,208,0.97); }
+body.t-paper  { --bg:#fafaf7;--text:#1a1a1a;--accent:#555;--surface:rgba(250,250,247,0.97);--border:rgba(0,0,0,0.1); }
+body.t-dark   { --bg:#141210;--text:#d4c8b0;--accent:#c4945a;--surface:rgba(20,18,16,0.97);--border:rgba(196,148,90,0.2);--shadow:rgba(0,0,0,0.4); }
+body.t-night  { --bg:#0d0f14;--text:#8faabf;--accent:#5a8ab4;--surface:rgba(13,15,20,0.97);--border:rgba(90,138,180,0.2); }
+body.t-green  { --bg:#f0f4ee;--text:#1a2e1a;--accent:#4a7c59;--accent2:#6ba57a;--muted:#7a9a7a;--surface:rgba(240,244,238,0.97);--border:rgba(74,124,89,0.18); }
+body.t-blue   { --bg:#eef2f7;--text:#1a2535;--accent:#3a6ea8;--accent2:#5a8ec8;--muted:#7a90a8;--surface:rgba(238,242,247,0.97);--border:rgba(58,110,168,0.18); }
+body.t-warm   { --bg:#2d1f14;--text:#e8d5b0;--accent:#d4956a;--accent2:#e8b48a;--muted:#a08060;--surface:rgba(45,31,20,0.97);--border:rgba(212,149,106,0.2);--shadow:rgba(0,0,0,0.5); }
+body.t-mocha  { --bg:#1e1a18;--text:#d0c4b0;--accent:#b8956a;--accent2:#d4b080;--muted:#8a7860;--surface:rgba(30,26,24,0.97);--border:rgba(184,149,106,0.2);--shadow:rgba(0,0,0,0.5); }
 
-  --font-body: 'Crimson Pro', Georgia, serif;
-  --font-display: 'Cormorant Garamond', Georgia, serif;
-  --font-size: 20px;
-  --line-height: 1.8;
-  --max-width: 680px;
-}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;height:100dvh;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font-body);transition:background .5s,color .5s;}
 
-/* Teme */
-body.theme-sepia { --bg:#f5ead0;--text:#3d2b0e;--surface:rgba(245,234,208,0.97); }
-body.theme-dark  { --bg:#141210;--text:#d4c8b0;--accent:#c4945a;--surface:rgba(20,18,16,0.97);--border:rgba(196,148,90,0.2);--shadow:rgba(0,0,0,0.4); }
-body.theme-night { --bg:#0d0f14;--text:#8faabf;--accent:#5a8ab4;--surface:rgba(13,15,20,0.97);--border:rgba(90,138,180,0.2); }
-body.theme-paper  { --bg:#fafaf7;--text:#1a1a1a;--accent:#555;--surface:rgba(250,250,247,0.97);--border:rgba(0,0,0,0.1); }
-body.theme-green  { --bg:#f0f4ee;--text:#1a2e1a;--accent:#4a7c59;--accent2:#6ba57a;--muted:#7a9a7a;--surface:rgba(240,244,238,0.97);--border:rgba(74,124,89,0.18); }
-body.theme-blue   { --bg:#eef2f7;--text:#1a2535;--accent:#3a6ea8;--accent2:#5a8ec8;--muted:#7a90a8;--surface:rgba(238,242,247,0.97);--border:rgba(58,110,168,0.18); }
-body.theme-warm   { --bg:#2d1f14;--text:#e8d5b0;--accent:#d4956a;--accent2:#e8b48a;--muted:#a08060;--surface:rgba(45,31,20,0.97);--border:rgba(212,149,106,0.2);--shadow:rgba(0,0,0,0.5); }
-body.theme-mocha  { --bg:#1e1a18;--text:#d0c4b0;--accent:#b8956a;--accent2:#d4b080;--muted:#8a7860;--surface:rgba(30,26,24,0.97);--border:rgba(184,149,106,0.2);--shadow:rgba(0,0,0,0.5); }
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg);transition:opacity .35s,transform .35s;}
+.screen.hidden{opacity:0;pointer-events:none;transform:translateY(10px);}
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── LIBRARY ── */
+#screen-library{padding-top:env(safe-area-inset-top,0px);}
+.lib-top{display:flex;align-items:center;justify-content:space-between;padding:24px 24px 0;flex-shrink:0;}
+.lib-brand{font-family:var(--font-display);font-size:13px;font-weight:300;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);opacity:.7;}
+.lib-actions{display:flex;gap:8px;align-items:center;}
+.btn-icon{width:36px;height:36px;border:1px solid var(--border);background:transparent;border-radius:50%;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:15px;font-family:var(--font-body);}
+.btn-icon:hover{color:var(--accent);border-color:var(--accent);}
+.btn-icon:active{transform:scale(.93);}
+.lib-heading{padding:18px 24px 4px;flex-shrink:0;}
+.lib-heading h1{font-family:var(--font-display);font-size:clamp(30px,7vw,50px);font-weight:300;line-height:1.1;color:var(--text);}
+.lib-heading h1 em{font-style:italic;color:var(--accent);}
+.lib-toolbar{display:flex;gap:10px;padding:14px 24px;flex-shrink:0;}
+.btn-add{display:flex;align-items:center;gap:7px;background:var(--accent);color:#fff;border:none;border-radius:22px;padding:10px 18px;font-family:var(--font-body);font-size:14px;cursor:pointer;transition:opacity .2s,transform .15s;white-space:nowrap;}
+.btn-add:active{opacity:.85;transform:scale(.97);}
+.btn-outline{display:flex;align-items:center;gap:6px;background:transparent;color:var(--accent);border:1px solid var(--border);border-radius:22px;padding:10px 14px;font-family:var(--font-body);font-size:14px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.btn-outline:hover{border-color:var(--accent);}
+.btn-outline:active{transform:scale(.97);}
+.lib-grid{flex:1;overflow-y:auto;padding:4px 24px 40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:22px;align-content:start;-webkit-overflow-scrolling:touch;}
+.lib-empty{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;padding:60px 20px;gap:12px;opacity:.4;text-align:center;}
+.lib-empty-icon{font-size:48px;}
+.lib-empty-text{font-family:var(--font-display);font-size:18px;font-style:italic;color:var(--muted);}
 
-html, body {
-  height: 100%; height: 100dvh;
-  overflow: hidden;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-body);
-  transition: background 0.5s, color 0.5s;
-}
+/* Book card */
+.book-card{display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:transform .25s;position:relative;animation:fadeUp .4s both;}
+.book-card:active{transform:scale(.94);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.book-spine{width:100%;aspect-ratio:2/3;border-radius:3px 7px 7px 3px;box-shadow:-3px 2px 0 rgba(0,0,0,.08),5px 8px 22px var(--shadow);position:relative;overflow:hidden;display:flex;align-items:flex-end;padding:10px 10px 12px;}
+.book-spine::before{content:'';position:absolute;left:0;top:0;bottom:0;width:8px;background:rgba(0,0,0,.18);border-radius:3px 0 0 3px;}
+.book-spine::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.12) 0%,transparent 60%);}
+.book-spine-title{font-family:var(--font-display);font-size:11px;color:rgba(255,255,255,.9);line-height:1.3;word-break:break-word;hyphens:auto;position:relative;z-index:1;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;}
+.book-pct-ring{position:absolute;top:8px;right:8px;width:28px;height:28px;z-index:1;}
+.book-meta{display:flex;flex-direction:column;gap:2px;}
+.book-title-label{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.book-pct-label{font-size:11px;color:var(--muted);}
+.book-del{position:absolute;top:6px;right:-4px;opacity:0;transition:opacity .2s;}
+.book-card:hover .book-del{opacity:1;}
+.book-del button{width:22px;height:22px;background:var(--surface);border:1px solid var(--border);border-radius:50%;color:var(--muted);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px var(--shadow);}
 
-/* ══════════════════════════════════
-   SCREEN SYSTEM
-══════════════════════════════════ */
-.screen {
-  position: fixed; inset: 0;
-  display: flex; flex-direction: column;
-  transition: opacity 0.4s, transform 0.4s;
-  background: var(--bg);
-}
-.screen.hidden {
-  opacity: 0; pointer-events: none;
-  transform: translateY(12px);
-}
+/* User chip */
+.user-chip{display:flex;align-items:center;gap:7px;cursor:pointer;padding:5px 10px 5px 5px;border-radius:20px;border:1px solid var(--border);transition:all .2s;background:transparent;font-family:var(--font-body);color:var(--text);}
+.user-chip:hover{border-color:var(--accent);}
+.u-avatar{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.u-avatar img{width:100%;height:100%;object-fit:cover;}
+.u-name{font-size:13px;color:var(--muted);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
-/* ══════════════════════════════════
-   LIBRARY SCREEN
-══════════════════════════════════ */
-#screen-library {
-  padding-top: env(safe-area-inset-top, 0px);
-}
+/* ── READER ── */
+.reader-hud{position:fixed;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);z-index:100;transition:transform .35s,opacity .35s;padding-top:env(safe-area-inset-top,0px);}
+.reader-hud.hud-off{transform:translateY(-100%);opacity:0;}
+.hud-left{display:flex;align-items:center;gap:8px;}
+.hud-right{display:flex;align-items:center;gap:6px;}
+.btn-back{background:none;border:none;color:var(--accent);font-size:18px;cursor:pointer;padding:4px 6px 4px 0;font-family:var(--font-body);display:flex;align-items:center;gap:5px;transition:opacity .2s;}
+.btn-back span{font-size:13px;color:var(--muted);}
+.btn-back:active{opacity:.6;}
+.hud-title{font-family:var(--font-display);font-size:14px;font-weight:400;font-style:italic;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;}
+.hud-pct{font-size:12px;color:var(--muted);letter-spacing:.08em;min-width:34px;text-align:right;}
+.prog-wrap{position:fixed;top:44px;left:0;right:0;height:2px;background:var(--border);z-index:100;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .6s ease;width:0%;}
+#epub-viewer{position:fixed;top:46px;left:0;right:0;bottom:44px;overflow:hidden;}
+#epub-viewer iframe{width:100%;height:100%;border:none;}
+#pdf-viewer{position:fixed;top:46px;left:0;right:0;bottom:44px;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:20px;gap:10px;-webkit-overflow-scrolling:touch;}
+#pdf-viewer canvas{max-width:100%;box-shadow:0 4px 22px var(--shadow);border-radius:2px;display:block;}
+.tap-zone{position:fixed;top:46px;bottom:44px;width:22%;cursor:pointer;z-index:50;}
+#tap-prev{left:0;}
+#tap-next{right:0;}
+.reader-footer{position:fixed;bottom:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:center;gap:4px;background:var(--surface);border-top:1px solid var(--border);backdrop-filter:blur(12px);z-index:100;padding-bottom:env(safe-area-inset-bottom,0px);transition:transform .35s,opacity .35s;}
+.reader-footer.hud-off{transform:translateY(100%);opacity:0;}
+.foot-btn{width:38px;height:38px;border:none;background:transparent;color:var(--muted);font-size:17px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.foot-btn:hover{color:var(--accent);background:rgba(139,94,42,.08);}
+.foot-btn:active{transform:scale(.9);}
 
-.lib-top {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 28px 28px 0;
-  flex-shrink: 0;
-}
+/* PDF nav */
+.pdf-nav{position:fixed;bottom:50px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:26px;padding:7px 14px;backdrop-filter:blur(12px);z-index:100;box-shadow:0 4px 18px var(--shadow);}
+.pdf-nav button{width:32px;height:32px;background:transparent;border:none;color:var(--accent);font-size:18px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+.pdf-nav button:hover{background:rgba(139,94,42,.1);}
+.pdf-page-info{font-size:13px;color:var(--muted);min-width:68px;text-align:center;}
+.pdf-nav.hidden{display:none;}
 
-.lib-brand {
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 300;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--accent);
-  opacity: 0.7;
-}
+/* ── PANELS ── */
+.panel{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .3s;}
+.panel.open{opacity:1;pointer-events:all;}
+.panel-inner{width:100%;max-height:78dvh;background:var(--bg);border-radius:20px 20px 0 0;padding:12px 22px 32px;overflow-y:auto;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,1,.4,1);border-top:1px solid var(--border);}
+.panel.open .panel-inner{transform:translateY(0);}
+.panel-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;}
+.panel-title{font-family:var(--font-display);font-size:20px;font-weight:300;font-style:italic;color:var(--accent);margin-bottom:18px;}
+.sg{margin-bottom:22px;}
+.sg-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
 
-.lib-actions { display: flex; gap: 10px; align-items: center; }
-
-.btn-icon {
-  width: 36px; height: 36px;
-  border: 1px solid var(--border);
-  background: transparent;
-  border-radius: 50%;
-  color: var(--muted);
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
-  font-size: 15px;
-}
-.btn-icon:hover { color: var(--accent); border-color: var(--accent); }
-.btn-icon:active { transform: scale(0.93); }
-
-.lib-heading {
-  padding: 20px 28px 6px;
-  flex-shrink: 0;
-}
-.lib-heading h1 {
-  font-family: var(--font-display);
-  font-size: clamp(32px, 7vw, 52px);
-  font-weight: 300;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
-  color: var(--text);
-}
-.lib-heading h1 em {
-  font-style: italic;
-  color: var(--accent);
-}
-
-.lib-sub {
-  font-size: 12px;
-  letter-spacing: 0.15em;
-  color: var(--muted);
-  text-transform: uppercase;
-  margin-top: 8px;
-  padding: 0 28px;
-  flex-shrink: 0;
-}
-
-.lib-toolbar {
-  display: flex; gap: 10px; align-items: center;
-  padding: 16px 28px;
-  flex-shrink: 0;
-}
-
-.btn-add {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--accent);
-  color: #fff;
-  border: none; border-radius: 24px;
-  padding: 10px 20px;
-  font-family: var(--font-body);
-  font-size: 14px;
-  cursor: pointer;
-  letter-spacing: 0.04em;
-  transition: opacity 0.2s, transform 0.15s;
-  white-space: nowrap;
-}
-.btn-add:active { opacity: 0.85; transform: scale(0.97); }
-
-.btn-dropbox {
-  display: flex; align-items: center; gap: 6px;
-  background: transparent;
-  color: var(--accent);
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 10px 16px;
-  font-family: var(--font-body);
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-.btn-dropbox:hover { border-color: var(--accent); background: rgba(139,94,42,0.06); }
-.btn-dropbox:active { transform: scale(0.97); }
-
-/* Grid carti */
-.lib-grid {
-  flex: 1; overflow-y: auto;
-  padding: 4px 28px 40px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 24px;
-  align-content: start;
-  -webkit-overflow-scrolling: touch;
-}
-
-.lib-empty {
-  grid-column: 1/-1;
-  display: flex; flex-direction: column; align-items: center;
-  padding: 60px 20px;
-  gap: 14px;
-  opacity: 0.4;
-  text-align: center;
-}
-.lib-empty-icon { font-size: 48px; }
-.lib-empty-text {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-style: italic;
-  color: var(--muted);
-}
-
-.book-card {
-  display: flex; flex-direction: column; gap: 10px;
-  cursor: pointer;
-  transition: transform 0.25s;
-  position: relative;
-  animation: fadeUp 0.4s both;
-}
-.book-card:active { transform: scale(0.94); }
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.book-spine {
-  width: 100%; aspect-ratio: 2/3;
-  background: linear-gradient(160deg, var(--accent) 0%, var(--accent2) 100%);
-  border-radius: 3px 7px 7px 3px;
-  box-shadow: -3px 2px 0 rgba(0,0,0,0.08), 5px 8px 24px var(--shadow);
-  position: relative; overflow: hidden;
-  display: flex; align-items: flex-end; justify-content: flex-start;
-  padding: 10px 10px 12px;
-}
-.book-spine::before {
-  content: '';
-  position: absolute; left: 0; top: 0; bottom: 0; width: 8px;
-  background: rgba(0,0,0,0.18);
-  border-radius: 3px 0 0 3px;
-}
-.book-spine::after {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
-}
-
-.book-spine-title {
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 400;
-  color: rgba(255,255,255,0.9);
-  line-height: 1.3;
-  word-break: break-word;
-  hyphens: auto;
-  position: relative; z-index: 1;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.book-progress-ring {
-  position: absolute; top: 8px; right: 8px;
-  width: 28px; height: 28px;
-  z-index: 1;
-}
-.book-progress-ring circle {
-  fill: none;
-  stroke: rgba(255,255,255,0.25);
-  stroke-width: 2.5;
-}
-.book-progress-ring .progress-arc {
-  stroke: rgba(255,255,255,0.85);
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.5s;
-}
-
-.book-meta {
-  display: flex; flex-direction: column; gap: 2px;
-}
-.book-title-label {
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.book-pct {
-  font-size: 11px;
-  color: var(--muted);
-  letter-spacing: 0.05em;
-}
-
-.book-card-menu {
-  position: absolute; top: 6px; right: -6px;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.book-card:hover .book-card-menu { opacity: 1; }
-.book-card-menu button {
-  width: 24px; height: 24px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  color: var(--muted);
-  font-size: 13px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 2px 8px var(--shadow);
-}
-
-/* ══════════════════════════════════
-   USER CHIP
-══════════════════════════════════ */
-.user-chip {
-  display: flex; align-items: center; gap: 8px;
-  cursor: pointer;
-  padding: 5px 10px 5px 5px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  transition: all 0.2s;
-  background: transparent;
-  font-family: var(--font-body);
-  color: var(--text);
-}
-.user-chip:hover { border-color: var(--accent); }
-.user-avatar {
-  width: 26px; height: 26px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  font-size: 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display);
-  overflow: hidden;
-}
-.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.user-name { font-size: 13px; color: var(--muted); max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.btn-login {
-  display: flex; align-items: center; gap: 8px;
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 7px 14px;
-  font-family: var(--font-body);
-  font-size: 13px;
-  color: var(--muted);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-login:hover { color: var(--accent); border-color: var(--accent); }
-
-/* ══════════════════════════════════
-   READER SCREEN
-══════════════════════════════════ */
-#screen-reader {
-  flex-direction: row;
-  background: var(--bg);
-}
-
-/* HUD — header minimalist */
-.reader-hud {
-  position: fixed; top: 0; left: 0; right: 0;
-  height: 44px;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 16px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  z-index: 100;
-  transition: transform 0.35s, opacity 0.35s;
-  padding-top: env(safe-area-inset-top, 0px);
-}
-.reader-hud.hidden-hud {
-  transform: translateY(-100%);
-  opacity: 0;
-}
-
-.hud-left { display: flex; align-items: center; gap: 10px; }
-.hud-right { display: flex; align-items: center; gap: 8px; }
-
-.btn-back {
-  background: none; border: none;
-  color: var(--accent); font-size: 18px; cursor: pointer;
-  padding: 4px 8px 4px 0;
-  font-family: var(--font-body);
-  display: flex; align-items: center; gap: 6px;
-  transition: opacity 0.2s;
-}
-.btn-back:active { opacity: 0.6; }
-.btn-back span { font-size: 13px; letter-spacing: 0.04em; color: var(--muted); }
-
-.hud-title {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 400;
-  font-style: italic;
-  color: var(--muted);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 160px;
-}
-
-.hud-progress {
-  display: flex; align-items: center; gap: 8px;
-}
-.hud-pct {
-  font-size: 12px;
-  color: var(--muted);
-  letter-spacing: 0.08em;
-  font-family: var(--font-body);
-  min-width: 36px;
-  text-align: right;
-}
-
-.progress-bar-wrap {
-  position: fixed; top: 44px; left: 0; right: 0; height: 2px;
-  background: var(--border);
-  z-index: 100;
-}
-.progress-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
-  transition: width 0.6s ease;
-  width: 0%;
-}
-
-/* Viewer containers */
-#epub-viewer {
-  position: fixed;
-  top: 46px; left: 0; right: 0; bottom: 44px;
-  overflow: hidden;
-}
-#epub-viewer iframe {
-  width: 100%; height: 100%;
-  border: none;
-}
-
-#pdf-viewer {
-  position: fixed;
-  top: 46px; left: 0; right: 0; bottom: 44px;
-  overflow-y: auto;
-  display: flex; flex-direction: column; align-items: center;
-  padding: 20px;
-  gap: 12px;
-  -webkit-overflow-scrolling: touch;
-}
-#pdf-viewer canvas {
-  max-width: 100%;
-  box-shadow: 0 4px 24px var(--shadow);
-  border-radius: 2px;
-  display: block;
-}
-
-/* Tap zones pentru navigare EPUB */
-.tap-zone {
-  position: fixed; top: 46px; bottom: 44px;
-  width: 22%; cursor: pointer; z-index: 50;
-  background: transparent;
-}
-#tap-prev { left: 0; }
-#tap-next { right: 0; }
-
-/* Footer bar */
-.reader-footer {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  height: 44px;
-  display: flex; align-items: center; justify-content: center;
-  gap: 4px;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  backdrop-filter: blur(12px);
-  z-index: 100;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  transition: transform 0.35s, opacity 0.35s;
-}
-.reader-footer.hidden-hud {
-  transform: translateY(100%);
-  opacity: 0;
-}
-
-.footer-btn {
-  width: 38px; height: 38px;
-  border: none; background: transparent;
-  color: var(--muted); font-size: 16px;
-  cursor: pointer; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
-}
-.footer-btn:hover { color: var(--accent); background: rgba(139,94,42,0.08); }
-.footer-btn:active { transform: scale(0.9); }
-
-/* ══════════════════════════════════
-   SETTINGS PANEL
-══════════════════════════════════ */
-.panel {
-  position: fixed; inset: 0; z-index: 200;
-  display: flex; align-items: flex-end;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(4px);
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.3s;
-}
-.panel.open { opacity: 1; pointer-events: all; }
-
-.panel-inner {
-  width: 100%; max-height: 75dvh;
-  background: var(--bg);
-  border-radius: 20px 20px 0 0;
-  padding: 12px 24px 32px;
-  overflow-y: auto;
-  transform: translateY(100%);
-  transition: transform 0.35s cubic-bezier(.32,1,.4,1);
-  border-top: 1px solid var(--border);
-}
-.panel.open .panel-inner { transform: translateY(0); }
-
-.panel-handle {
-  width: 36px; height: 4px;
-  background: var(--border);
-  border-radius: 2px;
-  margin: 0 auto 20px;
-}
-
-.panel-title {
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 300;
-  font-style: italic;
-  color: var(--accent);
-  margin-bottom: 20px;
-}
-
-.setting-group { margin-bottom: 24px; }
-.setting-label {
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 10px;
-}
-
-/* Teme grid */
-.theme-grid {
-  display: flex; gap: 10px; flex-wrap: wrap;
-}
-.theme-swatch {
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-  flex-shrink: 0;
-}
-.theme-swatch.active { border-color: var(--accent); transform: scale(1.12); }
-.theme-swatch[data-theme="default"]  { background: #f7f2e8; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12); }
-.theme-swatch[data-theme="sepia"]    { background: #f5ead0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); }
-.theme-swatch[data-theme="dark"]     { background: #141210; }
-.theme-swatch[data-theme="night"]    { background: #0d0f14; }
-.theme-swatch[data-theme="paper"]    { background: #fafaf7; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); }
-.theme-swatch[data-theme="green"]    { background: #f0f4ee; box-shadow: inset 0 0 0 1px rgba(74,124,89,0.3); }
-.theme-swatch[data-theme="blue"]     { background: #eef2f7; box-shadow: inset 0 0 0 1px rgba(58,110,168,0.25); }
-.theme-swatch[data-theme="warm"]     { background: #2d1f14; }
-.theme-swatch[data-theme="mocha"]    { background: #1e1a18; }
+/* Themes */
+.theme-grid{display:flex;gap:9px;flex-wrap:wrap;}
+.tswatch{width:42px;height:42px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .2s;flex-shrink:0;}
+.tswatch.active{border-color:var(--accent);transform:scale(1.12);}
+.tswatch[data-t="default"]{background:#f7f2e8;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);}
+.tswatch[data-t="sepia"]  {background:#f5ead0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1);}
+.tswatch[data-t="paper"]  {background:#fafaf7;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1);}
+.tswatch[data-t="dark"]   {background:#141210;}
+.tswatch[data-t="night"]  {background:#0d0f14;}
+.tswatch[data-t="green"]  {background:#f0f4ee;box-shadow:inset 0 0 0 1px rgba(74,124,89,.3);}
+.tswatch[data-t="blue"]   {background:#eef2f7;box-shadow:inset 0 0 0 1px rgba(58,110,168,.25);}
+.tswatch[data-t="warm"]   {background:#2d1f14;}
+.tswatch[data-t="mocha"]  {background:#1e1a18;}
 
 /* Font size */
-.font-size-row {
-  display: flex; align-items: center; gap: 12px;
-}
-.font-size-row button {
-  width: 42px; height: 42px;
-  border: 1px solid var(--border);
-  background: transparent; border-radius: 50%;
-  color: var(--text); font-size: 18px;
-  cursor: pointer; transition: all 0.2s;
-  font-family: var(--font-display);
-}
-.font-size-row button:hover { border-color: var(--accent); color: var(--accent); }
-.font-size-row button:active { transform: scale(0.92); }
-.font-size-val {
-  font-family: var(--font-display);
-  font-size: 20px; font-weight: 300;
-  color: var(--accent); min-width: 48px; text-align: center;
-}
+.fsrow{display:flex;align-items:center;gap:12px;}
+.fsrow button{width:42px;height:42px;border:1px solid var(--border);background:transparent;border-radius:50%;color:var(--text);font-size:18px;cursor:pointer;transition:all .2s;font-family:var(--font-display);}
+.fsrow button:hover{border-color:var(--accent);color:var(--accent);}
+.fsrow button:active{transform:scale(.92);}
+.fsval{font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--accent);min-width:46px;text-align:center;}
 
-/* Font family */
-.font-list {
-  display: flex; flex-direction: column; gap: 8px;
-}
-.font-opt {
-  padding: 11px 16px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex; align-items: center; justify-content: space-between;
-  background: transparent;
-  color: var(--text);
-  width: 100%;
-}
-.font-opt.active { border-color: var(--accent); background: rgba(139,94,42,0.06); }
-.font-opt-name { font-size: 16px; }
-.font-opt-sample { font-size: 12px; color: var(--muted); font-style: italic; }
+/* Fonts */
+.font-list{display:flex;flex-direction:column;gap:7px;}
+.font-opt{padding:10px 14px;border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:space-between;background:transparent;color:var(--text);width:100%;}
+.font-opt.active{border-color:var(--accent);background:rgba(139,94,42,.06);}
+.fo-name{font-size:15px;}
+.fo-sample{font-size:12px;color:var(--muted);font-style:italic;}
 
 /* Line height */
-.lh-row { display: flex; gap: 8px; }
-.lh-btn {
-  flex: 1; padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: transparent; color: var(--text);
-  font-size: 13px; cursor: pointer;
-  transition: all 0.2s;
-  font-family: var(--font-body);
-}
-.lh-btn.active { border-color: var(--accent); background: rgba(139,94,42,0.08); color: var(--accent); }
+.lhrow{display:flex;gap:8px;}
+.lhbtn{flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);font-size:13px;cursor:pointer;transition:all .2s;font-family:var(--font-body);}
+.lhbtn.active{border-color:var(--accent);background:rgba(139,94,42,.08);color:var(--accent);}
 
-/* ══════════════════════════════════
-   DROPBOX PANEL
-══════════════════════════════════ */
-.dropbox-list {
-  display: flex; flex-direction: column; gap: 8px;
-  max-height: 50dvh; overflow-y: auto;
-}
-.dropbox-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: transparent;
-  color: var(--text);
-  width: 100%;
-  text-align: left;
-}
-.dropbox-item:hover { border-color: var(--accent); background: rgba(139,94,42,0.05); }
-.dropbox-item-icon { font-size: 22px; }
-.dropbox-item-name { font-size: 14px; font-family: var(--font-body); }
-.dropbox-item-size { font-size: 11px; color: var(--muted); margin-top: 1px; }
-.dropbox-input-row {
-  display: flex; gap: 10px; align-items: center;
-  margin-bottom: 16px;
-}
-.dropbox-path-input {
-  flex: 1;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-family: var(--font-body);
-  font-size: 14px;
-  color: var(--text);
-  outline: none;
-}
-.dropbox-path-input:focus { border-color: var(--accent); }
-.btn-sm {
-  padding: 10px 16px;
-  background: var(--accent); color: #fff;
-  border: none; border-radius: 8px;
-  font-family: var(--font-body); font-size: 13px;
-  cursor: pointer; white-space: nowrap;
-  transition: opacity 0.2s;
-}
-.btn-sm:active { opacity: 0.8; }
-.btn-sm-outline {
-  padding: 10px 16px;
-  background: transparent; color: var(--accent);
-  border: 1px solid var(--accent); border-radius: 8px;
-  font-family: var(--font-body); font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.dropbox-connect-box {
-  text-align: center; padding: 20px 0;
-  display: flex; flex-direction: column; gap: 12px; align-items: center;
-}
-.dropbox-connect-box p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+/* Toast */
+.toast{position:fixed;bottom:58px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--text);color:var(--bg);padding:10px 20px;border-radius:20px;font-size:13px;font-family:var(--font-body);opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:999;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* ══════════════════════════════════
-   TOAST
-══════════════════════════════════ */
-.toast {
-  position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(20px);
-  background: var(--text); color: var(--bg);
-  padding: 10px 20px; border-radius: 20px;
-  font-size: 13px; font-family: var(--font-body);
-  opacity: 0; transition: all 0.3s;
-  pointer-events: none; white-space: nowrap;
-  z-index: 999;
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* Loader */
+.loader{position:fixed;inset:0;z-index:500;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;transition:opacity .4s;}
+.loader.done{opacity:0;pointer-events:none;}
+.loader-title{font-family:var(--font-display);font-size:22px;font-weight:300;font-style:italic;color:var(--accent);}
+.dots{display:flex;gap:8px;}
+.dots span{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:dot 1.2s infinite both;}
+.dots span:nth-child(2){animation-delay:.2s;}
+.dots span:nth-child(3){animation-delay:.4s;}
+@keyframes dot{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
 
+/* Pull to refresh */
+.ptr{position:fixed;top:0;left:0;right:0;height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--surface);z-index:300;transition:height .2s;font-size:13px;color:var(--muted);gap:8px;font-family:var(--font-body);}
+.ptr.show{height:52px;}
+.ptr-spin{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* ══════════════════════════════════
-   PULL TO REFRESH
-══════════════════════════════════ */
-.ptr-indicator {
-  position: fixed; top: 0; left: 0; right: 0;
-  height: 0; overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--surface);
-  z-index: 300;
-  transition: height 0.2s;
-  font-family: var(--font-body);
-  font-size: 13px;
-  color: var(--muted);
-  gap: 8px;
-}
-.ptr-indicator.visible { height: 52px; }
-.ptr-spinner {
-  width: 18px; height: 18px;
-  border: 2px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Fullscreen btn */
-.btn-fullscreen {
-  width: 36px; height: 36px;
-  border: 1px solid var(--border);
-  background: transparent;
-  border-radius: 50%;
-  color: var(--muted);
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
-  font-size: 14px;
-}
-.btn-fullscreen:hover { color: var(--accent); border-color: var(--accent); }
-
-/* ══════════════════════════════════
-   LOADING
-══════════════════════════════════ */
-.loader {
-  position: fixed; inset: 0; z-index: 500;
-  background: var(--bg);
-  display: flex; align-items: center; justify-content: center;
-  flex-direction: column; gap: 20px;
-  transition: opacity 0.4s;
-}
-.loader.done { opacity: 0; pointer-events: none; }
-.loader-title {
-  font-family: var(--font-display);
-  font-size: 22px; font-weight: 300;
-  font-style: italic; color: var(--accent);
-}
-.loader-dots { display: flex; gap: 8px; }
-.loader-dots span {
-  width: 6px; height: 6px;
-  background: var(--accent); border-radius: 50%;
-  animation: dot 1.2s infinite both;
-}
-.loader-dots span:nth-child(2) { animation-delay: 0.2s; }
-.loader-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes dot {
-  0%,80%,100% { opacity: 0.2; transform: scale(0.8); }
-  40% { opacity: 1; transform: scale(1); }
-}
-
-/* ══════════════════════════════════
-   PDF nav
-══════════════════════════════════ */
-.pdf-nav {
-  position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 14px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 28px; padding: 8px 16px;
-  backdrop-filter: blur(12px); z-index: 100;
-  box-shadow: 0 4px 20px var(--shadow);
-}
-.pdf-nav button {
-  width: 34px; height: 34px;
-  background: transparent; border: none;
-  color: var(--accent); font-size: 18px;
-  cursor: pointer; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.2s;
-}
-.pdf-nav button:hover { background: rgba(139,94,42,0.1); }
-.pdf-page-info { font-size: 13px; color: var(--muted); min-width: 70px; text-align: center; font-family: var(--font-body); }
-.pdf-nav.hidden { display: none; }
-
-/* Scrollbar styling */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-/* Upload drag zone */
-#file-input { display: none; }
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+#file-input{display:none;}
 </style>
 </head>
 <body>
 
-<!-- ══ PULL TO REFRESH ══ -->
-<div class="ptr-indicator" id="ptr-indicator">
-  <div class="ptr-spinner"></div>
-  <span id="ptr-text">Trage pentru reîncărcare</span>
+<!-- PTR -->
+<div class="ptr" id="ptr">
+  <div class="ptr-spin"></div>
+  <span id="ptr-txt">Trage pentru reîncărcare</span>
 </div>
 
-<!-- ══ LIBRARY SCREEN ══ -->
+<!-- ── LIBRARY ── -->
 <div id="screen-library" class="screen">
   <div class="lib-top">
     <div class="lib-brand">Lectură</div>
     <div class="lib-actions">
-      <button class="btn-fullscreen" onclick="toggleFullscreen()" title="Ecran complet">⛶</button>
+      <button class="btn-icon" onclick="toggleFullscreen()" title="Ecran complet">⛶</button>
       <div id="user-area">
-        <button class="btn-login" id="btn-login">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-          Conectare
+        <button class="btn-icon" onclick="loginGoogle()" title="Conectare Google">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         </button>
       </div>
     </div>
   </div>
-
-  <div class="lib-heading">
-    <h1>Biblioteca<br><em>ta</em></h1>
-  </div>
-  <div class="lib-sub" id="lib-sub">Se încarcă...</div>
-
+  <div class="lib-heading"><h1>Biblioteca<br><em>ta</em></h1></div>
+  <div style="font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);padding:0 24px 0;flex-shrink:0;" id="lib-sub"></div>
   <div class="lib-toolbar">
-    <button class="btn-add" id="btn-upload">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+    <button class="btn-add" onclick="document.getElementById('file-input').click()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
       Adaugă carte
     </button>
-    <button class="btn-dropbox" id="btn-dropbox-open">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L5 7.5 12 13l-7 5.5 7-5.5 7 5.5-7-5.5 7-5.5z"/></svg>
+    <button class="btn-outline" onclick="dropboxPick()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L5 7.5 12 13l-7 5.5 7-5.5 7 5.5-7-5.5 7-5.5z"/></svg>
       Dropbox
     </button>
   </div>
-
   <div class="lib-grid" id="lib-grid">
     <div class="lib-empty">
       <div class="lib-empty-icon">📚</div>
@@ -857,139 +223,115 @@ html, body {
   </div>
 </div>
 
-<!-- ══ READER SCREEN ══ -->
+<!-- ── READER ── -->
 <div id="screen-reader" class="screen hidden">
-
   <div class="reader-hud" id="reader-hud">
     <div class="hud-left">
       <button class="btn-back" id="btn-back">← <span>Bibliotecă</span></button>
       <div class="hud-title" id="hud-title"></div>
     </div>
     <div class="hud-right">
-      <div class="hud-progress">
-        <span class="hud-pct" id="hud-pct">0%</span>
-      </div>
+      <span class="hud-pct" id="hud-pct">0%</span>
     </div>
   </div>
-
-  <div class="progress-bar-wrap">
-    <div class="progress-bar-fill" id="progress-bar"></div>
-  </div>
-
+  <div class="prog-wrap"><div class="prog-fill" id="prog-fill"></div></div>
   <div id="epub-viewer"></div>
   <div id="pdf-viewer"></div>
-
-  <div id="tap-prev" class="tap-zone" onclick="readerPrev()"></div>
-  <div id="tap-next" class="tap-zone" onclick="readerNext()"></div>
-
+  <div id="tap-prev" class="tap-zone" onclick="rdrPrev()"></div>
+  <div id="tap-next" class="tap-zone" onclick="rdrNext()"></div>
   <div class="reader-footer" id="reader-footer">
-    <button class="footer-btn" title="Pagina anterioară" onclick="readerPrev()">‹</button>
-    <button class="footer-btn" title="Bookmark" id="btn-bookmark" onclick="toggleBookmark()">♡</button>
-    <button class="footer-btn" title="Setări" onclick="openSettings()">⚙</button>
-    <button class="footer-btn" title="Cuprins" onclick="openTOC()">☰</button>
-    <button class="footer-btn" title="Pagina următoare" onclick="readerNext()">›</button>
+    <button class="foot-btn" onclick="rdrPrev()">‹</button>
+    <button class="foot-btn" id="btn-bm" onclick="saveBookmark()">♡</button>
+    <button class="foot-btn" onclick="openPanel('ps')">⚙</button>
+    <button class="foot-btn" onclick="openPanel('pt')">☰</button>
+    <button class="foot-btn" onclick="rdrNext()">›</button>
   </div>
 </div>
 
-<!-- ══ PDF Nav ══ -->
+<!-- PDF nav -->
 <div class="pdf-nav hidden" id="pdf-nav">
   <button onclick="pdfPrev()">‹</button>
-  <span class="pdf-page-info" id="pdf-page-info">1 / 1</span>
+  <span class="pdf-page-info" id="pdf-pi">1 / 1</span>
   <button onclick="pdfNext()">›</button>
 </div>
 
-<!-- ══ SETTINGS PANEL ══ -->
-<div class="panel" id="panel-settings" onclick="panelOutsideClick(event,'panel-settings')">
+<!-- Settings panel -->
+<div class="panel" id="ps" onclick="if(event.target.id==='ps')closePanel('ps')">
   <div class="panel-inner">
     <div class="panel-handle"></div>
     <div class="panel-title">Setări lectură</div>
 
-    <div class="setting-group">
-      <div class="setting-label">Fundal</div>
+    <div class="sg">
+      <div class="sg-label">Fundal</div>
       <div class="theme-grid">
-        <div class="theme-swatch active" data-theme="default" onclick="setTheme('default')" title="Crem"></div>
-        <div class="theme-swatch" data-theme="sepia" onclick="setTheme('sepia')" title="Sepia"></div>
-        <div class="theme-swatch" data-theme="paper" onclick="setTheme('paper')" title="Alb"></div>
-        <div class="theme-swatch" data-theme="dark" onclick="setTheme('dark')" title="Întunecat"></div>
-        <div class="theme-swatch" data-theme="night" onclick="setTheme('night')" title="Noapte"></div>
-        <div class="theme-swatch" data-theme="green" onclick="setTheme('green')" title="Verde"></div>
-        <div class="theme-swatch" data-theme="blue" onclick="setTheme('blue')" title="Albastru"></div>
-        <div class="theme-swatch" data-theme="warm" onclick="setTheme('warm')" title="Warm Dark"></div>
-        <div class="theme-swatch" data-theme="mocha" onclick="setTheme('mocha')" title="Mocha"></div>
+        <div class="tswatch active" data-t="default" onclick="setTheme('default')" title="Crem"></div>
+        <div class="tswatch" data-t="sepia"   onclick="setTheme('sepia')"   title="Sepia"></div>
+        <div class="tswatch" data-t="paper"   onclick="setTheme('paper')"   title="Alb"></div>
+        <div class="tswatch" data-t="dark"    onclick="setTheme('dark')"    title="Întunecat"></div>
+        <div class="tswatch" data-t="night"   onclick="setTheme('night')"   title="Noapte"></div>
+        <div class="tswatch" data-t="green"   onclick="setTheme('green')"   title="Verde"></div>
+        <div class="tswatch" data-t="blue"    onclick="setTheme('blue')"    title="Albastru"></div>
+        <div class="tswatch" data-t="warm"    onclick="setTheme('warm')"    title="Warm Dark"></div>
+        <div class="tswatch" data-t="mocha"   onclick="setTheme('mocha')"   title="Mocha"></div>
       </div>
     </div>
 
-    <div class="setting-group">
-      <div class="setting-label">Mărime text</div>
-      <div class="font-size-row">
-        <button onclick="changeFontSize(-1)">A−</button>
-        <span class="font-size-val" id="font-size-display">20px</span>
-        <button onclick="changeFontSize(1)">A+</button>
+    <div class="sg">
+      <div class="sg-label">Mărime text</div>
+      <div class="fsrow">
+        <button onclick="chgFont(-1)">A−</button>
+        <span class="fsval" id="fsval">20px</span>
+        <button onclick="chgFont(1)">A+</button>
       </div>
     </div>
 
-    <div class="setting-group">
-      <div class="setting-label">Font</div>
+    <div class="sg">
+      <div class="sg-label">Font</div>
       <div class="font-list">
-        <button class="font-opt active" data-font="crimson" onclick="setFont('crimson','Crimson Pro, Georgia, serif')">
-          <span class="font-opt-name" style="font-family:'Crimson Pro',serif">Crimson Pro</span>
-          <span class="font-opt-sample" style="font-family:'Crimson Pro',serif">„O lume de hârtie"</span>
+        <button class="font-opt active" data-fk="crimson" onclick="setFont('crimson','Crimson Pro,Georgia,serif')">
+          <span class="fo-name" style="font-family:'Crimson Pro',serif">Crimson Pro</span>
+          <span class="fo-sample" style="font-family:'Crimson Pro',serif">„O lume de hârtie"</span>
         </button>
-        <button class="font-opt" data-font="cormorant" onclick="setFont('cormorant','Cormorant Garamond, Georgia, serif')">
-          <span class="font-opt-name" style="font-family:'Cormorant Garamond',serif">Cormorant Garamond</span>
-          <span class="font-opt-sample" style="font-family:'Cormorant Garamond',serif">„O lume de hârtie"</span>
+        <button class="font-opt" data-fk="cormorant" onclick="setFont('cormorant','Cormorant Garamond,Georgia,serif')">
+          <span class="fo-name" style="font-family:'Cormorant Garamond',serif">Cormorant Garamond</span>
+          <span class="fo-sample" style="font-family:'Cormorant Garamond',serif">„O lume de hârtie"</span>
         </button>
-        <button class="font-opt" data-font="georgia" onclick="setFont('georgia','Georgia, serif')">
-          <span class="font-opt-name" style="font-family:Georgia,serif">Georgia</span>
-          <span class="font-opt-sample" style="font-family:Georgia,serif">„O lume de hârtie"</span>
+        <button class="font-opt" data-fk="lora" onclick="setFont('lora','Lora,Georgia,serif')">
+          <span class="fo-name" style="font-family:Lora,serif">Lora</span>
+          <span class="fo-sample" style="font-family:Lora,serif">„O lume de hârtie"</span>
         </button>
-        <button class="font-opt" data-font="lora" onclick="setFont('lora','Lora, Georgia, serif')">
-          <span class="font-opt-name" style="font-family:Lora,serif">Lora</span>
-          <span class="font-opt-sample" style="font-family:Lora,serif">„O lume de hârtie"</span>
+        <button class="font-opt" data-fk="merriweather" onclick="setFont('merriweather','Merriweather,Georgia,serif')">
+          <span class="fo-name" style="font-family:Merriweather,serif">Merriweather</span>
+          <span class="fo-sample" style="font-family:Merriweather,serif">„O lume de hârtie"</span>
         </button>
-        <button class="font-opt" data-font="merriweather" onclick="setFont('merriweather','Merriweather, Georgia, serif')">
-          <span class="font-opt-name" style="font-family:Merriweather,serif">Merriweather</span>
-          <span class="font-opt-sample" style="font-family:Merriweather,serif">„O lume de hârtie"</span>
+        <button class="font-opt" data-fk="sourceserif" onclick="setFont('sourceserif','Source Serif 4,Georgia,serif')">
+          <span class="fo-name" style="font-family:'Source Serif 4',serif">Source Serif 4</span>
+          <span class="fo-sample" style="font-family:'Source Serif 4',serif">„O lume de hârtie"</span>
         </button>
-        <button class="font-opt" data-font="sourceserif" onclick="setFont('sourceserif','Source Serif 4, Georgia, serif')">
-          <span class="font-opt-name" style="font-family:'Source Serif 4',serif">Source Serif 4</span>
-          <span class="font-opt-sample" style="font-family:'Source Serif 4',serif">„O lume de hârtie"</span>
+        <button class="font-opt" data-fk="georgia" onclick="setFont('georgia','Georgia,serif')">
+          <span class="fo-name" style="font-family:Georgia,serif">Georgia</span>
+          <span class="fo-sample" style="font-family:Georgia,serif">„O lume de hârtie"</span>
         </button>
-        <button class="font-opt" data-font="system" onclick="setFont('system','-apple-system,BlinkMacSystemFont,sans-serif')">
-          <span class="font-opt-name">System Sans</span>
-          <span class="font-opt-sample">„O lume de hârtie"</span>
+        <button class="font-opt" data-fk="system" onclick="setFont('system','-apple-system,BlinkMacSystemFont,sans-serif')">
+          <span class="fo-name">System Sans</span>
+          <span class="fo-sample">„O lume de hârtie"</span>
         </button>
       </div>
     </div>
 
-    <div class="setting-group">
-      <div class="setting-label">Spațiere rânduri</div>
-      <div class="lh-row">
-        <button class="lh-btn" onclick="setLineHeight(1.5, this)">Compact</button>
-        <button class="lh-btn active" onclick="setLineHeight(1.8, this)">Normal</button>
-        <button class="lh-btn" onclick="setLineHeight(2.2, this)">Aerisit</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ DROPBOX PANEL ══ -->
-<div class="panel" id="panel-dropbox" onclick="panelOutsideClick(event,'panel-dropbox')">
-  <div class="panel-inner">
-    <div class="panel-handle"></div>
-    <div class="panel-title">Dropbox</div>
-    <div id="dropbox-content">
-      <div class="dropbox-connect-box">
-        <p>Conectează-te la Dropbox pentru a accesa<br>cărțile tale direct din aplicație.</p>
-        <button class="btn-sm" onclick="dropboxConnect()">Conectare Dropbox</button>
-        <p style="font-size:12px;opacity:0.6">Sau adaugă o carte direct prin butonul „Adaugă carte"</p>
+    <div class="sg">
+      <div class="sg-label">Spațiere rânduri</div>
+      <div class="lhrow">
+        <button class="lhbtn" onclick="setLH(1.5,this)">Compact</button>
+        <button class="lhbtn active" onclick="setLH(1.8,this)">Normal</button>
+        <button class="lhbtn" onclick="setLH(2.2,this)">Aerisit</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ TOC PANEL ══ -->
-<div class="panel" id="panel-toc" onclick="panelOutsideClick(event,'panel-toc')">
+<!-- TOC panel -->
+<div class="panel" id="pt" onclick="if(event.target.id==='pt')closePanel('pt')">
   <div class="panel-inner">
     <div class="panel-handle"></div>
     <div class="panel-title">Cuprins</div>
@@ -997,826 +339,511 @@ html, body {
   </div>
 </div>
 
-<!-- ══ LOADER ══ -->
+<!-- Loader -->
 <div class="loader" id="loader">
   <div class="loader-title">Se deschide cartea…</div>
-  <div class="loader-dots"><span></span><span></span><span></span></div>
+  <div class="dots"><span></span><span></span><span></span></div>
 </div>
 
-<!-- ══ TOAST ══ -->
 <div class="toast" id="toast"></div>
-
-<!-- ══ FILE INPUT ══ -->
 <input type="file" id="file-input" accept=".epub,.pdf" multiple>
-
-<!-- ══ DROPBOX APP KEY — înlocuiește cu al tău ══ -->
 <script src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs" data-app-key="DROPBOX_APP_KEY"></script>
 
-<script>
-// ══════════════════════════════════
-// STATE
-// ══════════════════════════════════
-const S = {
-  books: [],           // { id, title, format, data(blob URL / ArrayBuffer ref), progress, bookmark, addedAt }
-  currentBook: null,
-  currentFormat: null, // 'epub' | 'pdf'
-  epubBook: null,
-  epubRendition: null,
-  pdfDoc: null,
-  pdfPage: 1,
-  pdfTotal: 1,
-  settings: {
-    theme: 'default',
-    fontSize: 20,
-    fontFamily: 'Crimson Pro, Georgia, serif',
-    fontKey: 'crimson',
-    lineHeight: 1.8,
-  },
-  user: null,
-  hudVisible: true,
-  hudTimer: null,
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc }
+  from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA5gtr-dyzd_nrW7Qn8mID_866lm1djGas",
+  authDomain: "books-cosmin.firebaseapp.com",
+  projectId: "books-cosmin",
+  storageBucket: "books-cosmin.firebasestorage.app",
+  messagingSenderId: "437758651461",
+  appId: "1:437758651461:web:a6b4e31b2b6ddc5baf472c"
 };
 
-// ══════════════════════════════════
-// INIT
-// ══════════════════════════════════
-window.addEventListener('DOMContentLoaded', async () => {
-  hideLoader();
-  loadSettingsLocal();
-  loadBooksLocal();
-  renderLibrary();
-  initFirebaseAuth();
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+const prov = new GoogleAuthProvider();
+
+window._fb = { auth, db, prov, signInWithPopup, signOut, onAuthStateChanged, doc, setDoc, getDoc, collection, getDocs, deleteDoc };
+
+onAuthStateChanged(auth, user => {
+  window._user = user;
+  renderUserArea();
+  if (user) syncFromCloud();
+});
+</script>
+
+<script>
+// ── PDF.js worker ──
+if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ── STATE ──
+const S = {
+  books: [], cur: null, fmt: null,
+  epubBook: null, epubRend: null,
+  pdfDoc: null, pdfPage: 1, pdfTotal: 1,
+  cfg: { theme:'default', fs:20, fk:'crimson', ff:'Crimson Pro,Georgia,serif', lh:1.8 },
+  hudOn: true, hudTimer: null,
+};
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', () => {
+  loadCfg(); loadBooks(); renderLib();
+  setTimeout(() => document.getElementById('loader').classList.add('done'), 400);
 });
 
-function hideLoader() {
-  setTimeout(() => document.getElementById('loader').classList.add('done'), 300);
-}
-
-// ══════════════════════════════════
-// FIREBASE AUTH
-// ══════════════════════════════════
-function initFirebaseAuth() {
-  if (!window._fb) return;
-  const { auth, onAuthStateChanged } = window._fb;
-  onAuthStateChanged(auth, user => {
-    S.user = user;
-    renderUserArea();
-    if (user) syncFromCloud();
-  });
-}
-
-function renderUserArea() {
-  const area = document.getElementById('user-area');
-  if (!S.user) {
-    area.innerHTML = `<button class="btn-login" id="btn-login" onclick="loginGoogle()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-      Conectare
-    </button>`;
-  } else {
-    const name = S.user.displayName || S.user.email || '?';
-    const photo = S.user.photoURL;
-    area.innerHTML = `<button class="user-chip" onclick="logoutGoogle()">
-      <div class="user-avatar">${photo ? `<img src="${photo}">` : name[0].toUpperCase()}</div>
-      <span class="user-name">${name.split(' ')[0]}</span>
-    </button>`;
-  }
-}
-
-async function loginGoogle() {
-  if (!window._fb) { showToast('Firebase neconfigurat'); return; }
+// ── FIREBASE AUTH ──
+window.loginGoogle = async function() {
+  if (!window._fb) { showToast('Firebase se inițializează, încearcă din nou...'); return; }
   try {
-    await window._fb.signInWithPopup(window._fb.auth, window._fb.provider);
-    showToast('Conectat cu succes!');
-  } catch(e) { showToast('Eroare la conectare'); }
-}
+    await window._fb.signInWithPopup(window._fb.auth, window._fb.prov);
+    showToast('Conectat!');
+  } catch(e) { showToast('Eroare la conectare: ' + e.message); }
+};
 
-async function logoutGoogle() {
+window.logoutGoogle = async function() {
   if (!window._fb) return;
   await window._fb.signOut(window._fb.auth);
   showToast('Deconectat');
+};
+
+function renderUserArea() {
+  const area = document.getElementById('user-area');
+  const u = window._user;
+  if (!u) {
+    area.innerHTML = '<button class="btn-icon" onclick="loginGoogle()" title="Conectare Google"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></button>';
+  } else {
+    const name = u.displayName || u.email || '?';
+    const ph = u.photoURL;
+    area.innerHTML = '<button class="user-chip" onclick="logoutGoogle()"><div class="u-avatar">' +
+      (ph ? '<img src="'+ph+'">' : name[0].toUpperCase()) +
+      '</div><span class="u-name">' + name.split(' ')[0] + '</span></button>';
+  }
 }
 
-// ══════════════════════════════════
-// CLOUD SYNC
-// ══════════════════════════════════
-async function syncToCloud(bookId) {
-  if (!S.user || !window._fb) return;
-  const book = S.books.find(b => b.id === bookId);
-  if (!book) return;
-  const { db, doc, setDoc } = window._fb;
+// ── CLOUD SYNC ──
+async function syncToCloud(id) {
+  const u = window._user; if (!u || !window._fb) return;
+  const b = S.books.find(x => x.id === id); if (!b) return;
   try {
-    await setDoc(doc(db, 'users', S.user.uid, 'books', bookId), {
-      id: book.id,
-      title: book.title,
-      format: book.format,
-      progress: book.progress || 0,
-      bookmark: book.bookmark || null,
-      addedAt: book.addedAt,
-      updatedAt: Date.now(),
+    await window._fb.setDoc(window._fb.doc(window._fb.db,'users',u.uid,'books',id), {
+      id:b.id, title:b.title, format:b.format,
+      progress:b.progress||0, bookmark:b.bookmark||null,
+      addedAt:b.addedAt, updatedAt:Date.now()
     });
-  } catch(e) { console.warn('Sync error:', e); }
+  } catch(e) {}
 }
 
 async function syncFromCloud() {
-  if (!S.user || !window._fb) return;
-  const { db, collection, getDocs } = window._fb;
+  const u = window._user; if (!u || !window._fb) return;
   try {
-    const snap = await getDocs(collection(db, 'users', S.user.uid, 'books'));
-    snap.forEach(docSnap => {
-      const cloud = docSnap.data();
-      const local = S.books.find(b => b.id === cloud.id);
-      if (local) {
-        // Merge: cloud câștigă dacă e mai recent
-        if ((cloud.updatedAt || 0) > (local.updatedAt || 0)) {
-          local.progress = cloud.progress;
-          local.bookmark = cloud.bookmark;
-        }
+    const snap = await window._fb.getDocs(window._fb.collection(window._fb.db,'users',u.uid,'books'));
+    snap.forEach(d => {
+      const c = d.data();
+      const loc = S.books.find(b => b.id === c.id);
+      if (loc && (c.updatedAt||0) > (loc.updatedAt||0)) {
+        loc.progress = c.progress; loc.bookmark = c.bookmark;
       }
     });
-    saveBooksLocal();
-    renderLibrary();
-  } catch(e) { console.warn('Sync from cloud error:', e); }
-}
-
-// ══════════════════════════════════
-// BOOKS — LOCAL STORAGE
-// ══════════════════════════════════
-function saveBooksLocal() {
-  // Salvăm metadate (nu fișierele binare — prea mari)
-  const meta = S.books.map(b => ({
-    id: b.id, title: b.title, format: b.format,
-    progress: b.progress, bookmark: b.bookmark, addedAt: b.addedAt,
-    updatedAt: b.updatedAt || 0,
-  }));
-  try { localStorage.setItem('lecturaBooks', JSON.stringify(meta)); } catch(e) {}
-}
-
-function loadBooksLocal() {
-  try {
-    const raw = localStorage.getItem('lecturaBooks');
-    if (raw) {
-      const meta = JSON.parse(raw);
-      // Restaurăm metadate; datele binare se pierd la refresh (user trebuie să re-adauge)
-      S.books = meta.map(m => ({ ...m, blobUrl: null, buffer: null }));
-    }
+    saveBooks(); renderLib();
   } catch(e) {}
 }
 
-function saveSettingsLocal() {
-  try { localStorage.setItem('lecturaSettings', JSON.stringify(S.settings)); } catch(e) {}
+// ── LOCAL STORAGE ──
+function saveBooks() {
+  try { localStorage.setItem('lb', JSON.stringify(S.books.map(b => ({
+    id:b.id, title:b.title, format:b.format,
+    progress:b.progress, bookmark:b.bookmark,
+    addedAt:b.addedAt, updatedAt:b.updatedAt||0
+  })))); } catch(e) {}
 }
-
-function loadSettingsLocal() {
+function loadBooks() {
+  try { const r = localStorage.getItem('lb'); if(r) S.books = JSON.parse(r); } catch(e) {}
+}
+function saveCfg() {
+  try { localStorage.setItem('lcfg', JSON.stringify(S.cfg)); } catch(e) {}
+}
+function loadCfg() {
   try {
-    const raw = localStorage.getItem('lecturaSettings');
-    if (raw) {
-      S.settings = { ...S.settings, ...JSON.parse(raw) };
-      applySettingsToDOM();
-    }
+    const r = localStorage.getItem('lcfg');
+    if (r) { S.cfg = {...S.cfg,...JSON.parse(r)}; applyCfgDOM(); }
   } catch(e) {}
 }
 
-// ══════════════════════════════════
-// LIBRARY RENDER
-// ══════════════════════════════════
-function renderLibrary() {
+// ── LIBRARY ──
+function renderLib() {
   const grid = document.getElementById('lib-grid');
-  const sub = document.getElementById('lib-sub');
-  sub.textContent = S.books.length === 0 ? '' :
-    `${S.books.length} carte${S.books.length !== 1 ? 'i' : ''}`;
-
-  if (S.books.length === 0) {
-    grid.innerHTML = `<div class="lib-empty">
-      <div class="lib-empty-icon">📚</div>
-      <div class="lib-empty-text">Nicio carte încă.<br>Adaugă prima ta carte.</div>
-    </div>`;
+  const sub  = document.getElementById('lib-sub');
+  sub.textContent = S.books.length ? S.books.length + ' carte' + (S.books.length !== 1 ? 'i' : '') : '';
+  if (!S.books.length) {
+    grid.innerHTML = '<div class="lib-empty"><div class="lib-empty-icon">📚</div><div class="lib-empty-text">Nicio carte încă.<br>Adaugă prima ta carte.</div></div>';
     return;
   }
-
   grid.innerHTML = '';
-  S.books.forEach((book, i) => {
-    const pct = Math.round((book.progress || 0) * 100);
-    const circ = 2 * Math.PI * 10; // r=10
-    const offset = circ * (1 - (book.progress || 0));
-    const colors = ['#8b5e2a','#5a7a8b','#6b7a5a','#8b5a6b','#5a6b8b','#7a6b5a'];
-    const color = colors[i % colors.length];
-
-    const card = document.createElement('div');
-    card.className = 'book-card';
-    card.style.animationDelay = `${i * 0.06}s`;
-    card.innerHTML = `
-      <div class="book-spine" style="background:linear-gradient(160deg,${color} 0%,${lighten(color)} 100%)" onclick="openBook('${book.id}')">
-        <span class="book-spine-title">${escHtml(book.title)}</span>
-        ${pct > 0 ? `<svg class="book-progress-ring" viewBox="0 0 28 28">
-          <circle cx="14" cy="14" r="10" stroke="rgba(255,255,255,0.2)" stroke-width="2.5" fill="none"/>
-          <circle class="progress-arc" cx="14" cy="14" r="10"
-            stroke="rgba(255,255,255,0.85)" stroke-width="2.5" fill="none"
-            stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
-            stroke-linecap="round" transform="rotate(-90 14 14)"/>
-        </svg>` : ''}
-      </div>
-      <div class="book-meta">
-        <div class="book-title-label">${escHtml(book.title)}</div>
-        ${pct > 0 ? `<div class="book-pct">${pct}% citit</div>` : `<div class="book-pct">${book.format.toUpperCase()}</div>`}
-      </div>
-      <div class="book-card-menu">
-        <button onclick="deleteBook('${book.id}',event)" title="Șterge">✕</button>
-      </div>`;
-    grid.appendChild(card);
+  const cols = ['#8b5e2a','#5a7a8b','#6b7a5a','#8b5a6b','#5a6b8b','#7a6b5a','#8b6b5a','#5a8b6b'];
+  S.books.forEach((b, i) => {
+    const pct = Math.round((b.progress||0)*100);
+    const c = cols[i % cols.length];
+    const cr = parseInt(c.slice(1,3),16), cg = parseInt(c.slice(3,5),16), cb2 = parseInt(c.slice(5,7),16);
+    const c2 = 'rgb('+Math.min(255,cr+55)+','+Math.min(255,cg+55)+','+Math.min(255,cb2+55)+')';
+    const circ = 2*Math.PI*10, off = circ*(1-(b.progress||0));
+    const ring = pct > 0 ? '<svg class="book-pct-ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="10" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="2.5"/><circle cx="14" cy="14" r="10" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.5" stroke-dasharray="'+circ+'" stroke-dashoffset="'+off+'" stroke-linecap="round" transform="rotate(-90 14 14)"/></svg>' : '';
+    const el = document.createElement('div');
+    el.className = 'book-card';
+    el.style.animationDelay = (i*0.06)+'s';
+    el.innerHTML =
+      '<div class="book-spine" style="background:linear-gradient(160deg,'+c+' 0%,'+c2+' 100%)" onclick="openBook(\''+b.id+'\')">'
+      + '<span class="book-spine-title">'+esc(b.title)+'</span>'+ring+'</div>'
+      + '<div class="book-meta"><div class="book-title-label">'+esc(b.title)+'</div>'
+      + '<div class="book-pct-label">'+(pct>0?pct+'% citit':b.format.toUpperCase())+'</div></div>'
+      + '<div class="book-del"><button onclick="delBook(\''+b.id+'\',event)">✕</button></div>';
+    grid.appendChild(el);
   });
 }
 
-function lighten(hex) {
-  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-  return `rgb(${Math.min(255,r+60)},${Math.min(255,g+60)},${Math.min(255,b+60)})`;
-}
-
-// ══════════════════════════════════
-// FILE UPLOAD
-// ══════════════════════════════════
-document.getElementById('btn-upload').onclick = () => document.getElementById('file-input').click();
-
-document.getElementById('file-input').addEventListener('change', async (e) => {
-  const files = Array.from(e.target.files);
-  for (const file of files) await addBookFromFile(file);
-  e.target.value = '';
-  renderLibrary();
+// ── FILE UPLOAD ──
+document.getElementById('file-input').addEventListener('change', async e => {
+  for (const f of Array.from(e.target.files)) await addFile(f);
+  e.target.value = ''; renderLib();
 });
 
-async function addBookFromFile(file) {
+async function addFile(file) {
   const ext = file.name.split('.').pop().toLowerCase();
-  if (!['epub','pdf'].includes(ext)) { showToast('Format nesuportat. Folosește EPUB sau PDF.'); return; }
-
-  const buffer = await file.arrayBuffer();
-  const id = 'book_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  if (!['epub','pdf'].includes(ext)) { showToast('Doar EPUB sau PDF'); return; }
+  const buf = await file.arrayBuffer();
+  const id  = 'b_' + Date.now() + '_' + Math.random().toString(36).slice(2);
   const title = file.name.replace(/\.(epub|pdf)$/i,'').replace(/_/g,' ');
-
-  // Stocăm buffer-ul în IndexedDB (mai mare decât localStorage)
-  await idbSet(id, buffer);
-
-  S.books.push({ id, title, format: ext, progress: 0, bookmark: null, addedAt: Date.now() });
-  saveBooksLocal();
-  showToast(`„${title}" adăugată!`);
+  await idbSet(id, buf);
+  S.books.push({ id, title, format:ext, progress:0, bookmark:null, addedAt:Date.now() });
+  saveBooks();
+  showToast('„'+title+'" adăugată!');
 }
 
-// ══════════════════════════════════
-// INDEXEDDB pentru fișiere binare
-// ══════════════════════════════════
+// ── INDEXEDDB ──
 function idbOpen() {
-  return new Promise((res, rej) => {
-    const req = indexedDB.open('LecturaDB', 1);
-    req.onupgradeneeded = e => e.target.result.createObjectStore('files');
-    req.onsuccess = e => res(e.target.result);
-    req.onerror = () => rej(req.error);
+  return new Promise((res,rej) => {
+    const r = indexedDB.open('LDB',1);
+    r.onupgradeneeded = e => e.target.result.createObjectStore('f');
+    r.onsuccess = e => res(e.target.result);
+    r.onerror = () => rej(r.error);
   });
 }
-async function idbSet(key, value) {
+async function idbSet(k,v) {
   const db = await idbOpen();
-  return new Promise((res, rej) => {
-    const tx = db.transaction('files','readwrite');
-    tx.objectStore('files').put(value, key);
-    tx.oncomplete = () => res();
-    tx.onerror = () => rej(tx.error);
+  return new Promise((res,rej) => {
+    const tx = db.transaction('f','readwrite');
+    tx.objectStore('f').put(v,k);
+    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
   });
 }
-async function idbGet(key) {
+async function idbGet(k) {
   const db = await idbOpen();
-  return new Promise((res, rej) => {
-    const tx = db.transaction('files','readonly');
-    const req = tx.objectStore('files').get(key);
-    req.onsuccess = () => res(req.result);
-    req.onerror = () => rej(req.error);
+  return new Promise((res,rej) => {
+    const tx = db.transaction('f','readonly');
+    const r  = tx.objectStore('f').get(k);
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
   });
 }
-async function idbDel(key) {
+async function idbDel(k) {
   const db = await idbOpen();
-  return new Promise((res, rej) => {
-    const tx = db.transaction('files','readwrite');
-    tx.objectStore('files').delete(key);
-    tx.oncomplete = () => res();
-    tx.onerror = () => rej(tx.error);
+  return new Promise((res,rej) => {
+    const tx = db.transaction('f','readwrite');
+    tx.objectStore('f').delete(k);
+    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
   });
 }
 
-// ══════════════════════════════════
-// DELETE BOOK
-// ══════════════════════════════════
-async function deleteBook(id, e) {
+// ── DELETE ──
+async function delBook(id, e) {
   e.stopPropagation();
   S.books = S.books.filter(b => b.id !== id);
   await idbDel(id);
-  saveBooksLocal();
-  // Cloud
-  if (S.user && window._fb) {
-    try { await window._fb.deleteDoc(window._fb.doc(window._fb.db,'users',S.user.uid,'books',id)); } catch(e){}
+  saveBooks();
+  if (window._user && window._fb) {
+    try { await window._fb.deleteDoc(window._fb.doc(window._fb.db,'users',window._user.uid,'books',id)); } catch(e){}
   }
-  renderLibrary();
+  renderLib();
   showToast('Carte ștearsă');
 }
 
-// ══════════════════════════════════
-// OPEN BOOK
-// ══════════════════════════════════
+// ── OPEN BOOK ──
 async function openBook(id) {
-  const book = S.books.find(b => b.id === id);
-  if (!book) return;
-
-  showLoader();
-  const buffer = await idbGet(id);
-  if (!buffer) {
-    hideLoader2();
-    showToast('Fișierul nu mai există. Re-adaugă cartea.');
-    return;
+  const b = S.books.find(x => x.id === id); if (!b) return;
+  document.getElementById('loader').classList.remove('done');
+  const buf = await idbGet(id);
+  if (!buf) {
+    document.getElementById('loader').classList.add('done');
+    showToast('Re-adaugă cartea (fișierul lipsește)'); return;
   }
-
-  S.currentBook = book;
-  S.currentFormat = book.format;
-
+  S.cur = b; S.fmt = b.format;
   showScreen('screen-reader');
-  document.getElementById('hud-title').textContent = book.title;
-  updateProgressUI(book.progress || 0);
+  document.getElementById('hud-title').textContent = b.title;
+  updProg(b.progress||0);
 
-  if (book.format === 'epub') {
+  if (b.format === 'epub') {
     document.getElementById('epub-viewer').style.display = 'block';
-    document.getElementById('pdf-viewer').style.display = 'none';
+    document.getElementById('pdf-viewer').style.display  = 'none';
     document.getElementById('tap-prev').style.display = 'block';
     document.getElementById('tap-next').style.display = 'block';
     document.getElementById('pdf-nav').classList.add('hidden');
-    await openEpub(buffer, book);
+    await openEpub(buf, b);
   } else {
     document.getElementById('epub-viewer').style.display = 'none';
-    document.getElementById('pdf-viewer').style.display = 'block';
+    document.getElementById('pdf-viewer').style.display  = 'block';
     document.getElementById('tap-prev').style.display = 'none';
     document.getElementById('tap-next').style.display = 'none';
-    await openPdf(buffer, book);
+    await openPdf(buf, b);
   }
-
-  hideLoader2();
-  resetHudTimer();
+  document.getElementById('loader').classList.add('done');
+  resetHud();
 }
 
-// ══════════════════════════════════
-// EPUB READER
-// ══════════════════════════════════
-async function openEpub(buffer, book) {
+// ── EPUB ──
+async function openEpub(buf, b) {
   if (S.epubBook) { try { S.epubBook.destroy(); } catch(e){} }
-
-  const epubData = buffer.slice(0);
-  const epubBook = ePub(epubData);
-  S.epubBook = epubBook;
-
+  const book = ePub(buf.slice(0));
+  S.epubBook = book;
   const viewer = document.getElementById('epub-viewer');
   viewer.innerHTML = '';
-
-  const rendition = epubBook.renderTo(viewer, {
-    width: '100%',
-    height: '100%',
-    flow: 'paginated',
-    spread: 'none',
-  });
-  S.epubRendition = rendition;
-
+  const rend = book.renderTo(viewer, { width:'100%', height:'100%', flow:'paginated', spread:'none' });
+  S.epubRend = rend;
   applyEpubTheme();
-
-  // Restore bookmark
-  if (book.bookmark) {
-    await rendition.display(book.bookmark);
-  } else {
-    await rendition.display();
-  }
-
-  // Progress tracking
-  epubBook.ready.then(() => {
-    epubBook.locations.generate(1024);
+  await rend.display(b.bookmark || undefined);
+  book.ready.then(() => book.locations.generate(1024));
+  rend.on('relocated', loc => {
+    const cfi = loc.start.cfi;
+    const pct = book.locations.percentageFromCfi(cfi) || 0;
+    saveProg(pct, cfi);
   });
-
-  rendition.on('relocated', (location) => {
-    const cfi = location.start.cfi;
-    const pct = epubBook.locations.percentageFromCfi(cfi) || 0;
-    saveProgress(pct, cfi);
-  });
-
-  // Cuprins
-  epubBook.loaded.navigation.then(nav => {
-    renderTOC(nav.toc, 'epub');
-  });
+  book.loaded.navigation.then(nav => renderTOC(nav.toc));
 }
 
 function applyEpubTheme() {
-  if (!S.epubRendition) return;
-  const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#f7f2e8';
-  const text = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#2a1f0e';
-  S.epubRendition.themes.default({
-    body: {
-      background: bg + ' !important',
-      color: text + ' !important',
-      'font-family': S.settings.fontFamily + ' !important',
-      'font-size': S.settings.fontSize + 'px !important',
-      'line-height': S.settings.lineHeight + ' !important',
-      'max-width': '680px',
-      margin: '0 auto',
-      padding: '20px 28px !important',
-    },
-    'p, li, td': {
-      'font-size': S.settings.fontSize + 'px !important',
-      'line-height': S.settings.lineHeight + ' !important',
-    }
+  if (!S.epubRend) return;
+  const s = getComputedStyle(document.body);
+  const bg = s.getPropertyValue('--bg').trim() || '#f7f2e8';
+  const tx = s.getPropertyValue('--text').trim() || '#2a1f0e';
+  S.epubRend.themes.default({
+    body: { background:bg+' !important', color:tx+' !important',
+      'font-family':S.cfg.ff+' !important', 'font-size':S.cfg.fs+'px !important',
+      'line-height':S.cfg.lh+' !important', 'max-width':'680px', margin:'0 auto', padding:'20px 26px !important' },
+    'p,li': { 'font-size':S.cfg.fs+'px !important', 'line-height':S.cfg.lh+' !important' }
   });
-  S.epubRendition.themes.select('default');
+  S.epubRend.themes.select('default');
 }
 
-function readerPrev() {
-  if (S.currentFormat === 'epub' && S.epubRendition) S.epubRendition.prev();
-  else if (S.currentFormat === 'pdf') pdfPrev();
-  showHud();
-}
-
-function readerNext() {
-  if (S.currentFormat === 'epub' && S.epubRendition) S.epubRendition.next();
-  else if (S.currentFormat === 'pdf') pdfNext();
-  showHud();
-}
-
-// ══════════════════════════════════
-// PDF READER
-// ══════════════════════════════════
-async function openPdf(buffer, book) {
-  // Load PDF.js dynamically
-  if (!window.pdfjsLib) {
-    await loadPdfJs();
-  }
-  const loadingTask = pdfjsLib.getDocument({ data: buffer });
-  const pdfDoc = await loadingTask.promise;
-  S.pdfDoc = pdfDoc;
-  S.pdfTotal = pdfDoc.numPages;
-  S.pdfPage = Math.max(1, Math.round((book.progress || 0) * pdfDoc.numPages));
-
+// ── PDF ──
+async function openPdf(buf, b) {
+  if (!window.pdfjsLib) { showToast('PDF.js nu s-a încărcat'); return; }
+  const task = pdfjsLib.getDocument({ data: buf });
+  const pdf  = await task.promise;
+  S.pdfDoc   = pdf; S.pdfTotal = pdf.numPages;
+  S.pdfPage  = b.bookmark ? parseInt(b.bookmark)||1 : Math.max(1, Math.round((b.progress||0)*pdf.numPages));
   document.getElementById('pdf-nav').classList.remove('hidden');
   await renderPdfPage();
-  renderTOC([], 'pdf');
-}
-
-async function loadPdfJs() {
-  return new Promise((res, rej) => {
-    const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs';
-    s.type = 'module';
-    s.onload = () => {
-      // pdfjsLib available via module - fallback
-      res();
-    };
-    // Use non-module version for compatibility
-    const s2 = document.createElement('script');
-    s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-    s2.onload = () => {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      res();
-    };
-    s2.onerror = rej;
-    document.head.appendChild(s2);
-  });
 }
 
 async function renderPdfPage() {
   if (!S.pdfDoc) return;
-  const container = document.getElementById('pdf-viewer');
-  container.innerHTML = '';
-
+  const con = document.getElementById('pdf-viewer');
+  con.innerHTML = '';
   const page = await S.pdfDoc.getPage(S.pdfPage);
-  const vw = window.innerWidth - 40;
-  const viewport0 = page.getViewport({ scale: 1 });
-  const scale = vw / viewport0.width;
-  const viewport = page.getViewport({ scale });
-
-  const canvas = document.createElement('canvas');
-  canvas.width = viewport.width;
-  canvas.height = viewport.height;
-  container.appendChild(canvas);
-
-  await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-
+  const vw   = window.innerWidth - 40;
+  const vp0  = page.getViewport({ scale:1 });
+  const vp   = page.getViewport({ scale: vw / vp0.width });
+  const cv   = document.createElement('canvas');
+  cv.width = vp.width; cv.height = vp.height;
+  con.appendChild(cv);
+  await page.render({ canvasContext:cv.getContext('2d'), viewport:vp }).promise;
   const pct = S.pdfPage / S.pdfTotal;
-  saveProgress(pct, String(S.pdfPage));
-  document.getElementById('pdf-page-info').textContent = `${S.pdfPage} / ${S.pdfTotal}`;
+  saveProg(pct, String(S.pdfPage));
+  document.getElementById('pdf-pi').textContent = S.pdfPage + ' / ' + S.pdfTotal;
 }
 
-async function pdfPrev() {
-  if (S.pdfPage > 1) { S.pdfPage--; await renderPdfPage(); showHud(); }
+async function pdfPrev() { if(S.pdfPage>1){ S.pdfPage--; await renderPdfPage(); showHud(); } }
+async function pdfNext() { if(S.pdfPage<S.pdfTotal){ S.pdfPage++; await renderPdfPage(); showHud(); } }
+window.pdfPrev = pdfPrev; window.pdfNext = pdfNext;
+
+// ── PROGRESS ──
+function saveProg(pct, cfi) {
+  if (!S.cur) return;
+  S.cur.progress = pct; S.cur.bookmark = cfi; S.cur.updatedAt = Date.now();
+  updProg(pct); saveBooks(); renderLib(); syncToCloud(S.cur.id);
 }
-async function pdfNext() {
-  if (S.pdfPage < S.pdfTotal) { S.pdfPage++; await renderPdfPage(); showHud(); }
+function updProg(pct) {
+  document.getElementById('hud-pct').textContent  = Math.round(pct*100)+'%';
+  document.getElementById('prog-fill').style.width = (pct*100)+'%';
 }
 
-// ══════════════════════════════════
-// PROGRESS & BOOKMARK
-// ══════════════════════════════════
-function saveProgress(pct, cfi) {
-  if (!S.currentBook) return;
-  S.currentBook.progress = pct;
-  S.currentBook.bookmark = cfi; // mereu salvăm poziția curentă
-  S.currentBook.updatedAt = Date.now();
-  updateProgressUI(pct);
-  saveBooksLocal();
-  renderLibrary();
-  syncToCloud(S.currentBook.id);
-}
-
-function updateProgressUI(pct) {
-  document.getElementById('hud-pct').textContent = Math.round(pct * 100) + '%';
-  document.getElementById('progress-bar').style.width = (pct * 100) + '%';
-}
-
-function toggleBookmark() {
-  if (!S.currentBook) return;
-  if (S.currentFormat === 'epub' && S.epubRendition) {
-    const loc = S.epubRendition.currentLocation();
-    if (loc && loc.start) {
-      S.currentBook.bookmark = loc.start.cfi;
-      S.currentBook.updatedAt = Date.now();
-      saveBooksLocal();
-      syncToCloud(S.currentBook.id);
-      document.getElementById('btn-bookmark').textContent = '♥';
-      showToast('Bookmark salvat!');
-      setTimeout(() => document.getElementById('btn-bookmark').textContent = '♡', 2000);
-    }
-  } else if (S.currentFormat === 'pdf') {
-    S.currentBook.bookmark = String(S.pdfPage);
-    S.currentBook.updatedAt = Date.now();
-    saveBooksLocal();
-    syncToCloud(S.currentBook.id);
-    document.getElementById('btn-bookmark').textContent = '♥';
-    showToast(`Bookmark la pagina ${S.pdfPage}!`);
-    setTimeout(() => document.getElementById('btn-bookmark').textContent = '♡', 2000);
+function saveBookmark() {
+  if (!S.cur) return;
+  let cfi = null;
+  if (S.fmt==='epub' && S.epubRend) {
+    const l = S.epubRend.currentLocation();
+    if (l && l.start) cfi = l.start.cfi;
+  } else if (S.fmt==='pdf') { cfi = String(S.pdfPage); }
+  if (cfi) {
+    S.cur.bookmark = cfi; S.cur.updatedAt = Date.now();
+    saveBooks(); syncToCloud(S.cur.id);
+    document.getElementById('btn-bm').textContent = '♥';
+    showToast('Bookmark salvat!');
+    setTimeout(() => document.getElementById('btn-bm').textContent = '♡', 2000);
   }
 }
+window.saveBookmark = saveBookmark;
 
-// ══════════════════════════════════
-// TOC
-// ══════════════════════════════════
-function renderTOC(toc, format) {
+// ── TOC ──
+function renderTOC(toc) {
   const list = document.getElementById('toc-list');
   list.innerHTML = '';
-  if (!toc || toc.length === 0) {
-    list.innerHTML = `<p style="color:var(--muted);font-size:14px;padding:10px 0">Cuprins indisponibil</p>`;
-    return;
-  }
+  if (!toc||!toc.length) { list.innerHTML='<p style="color:var(--muted);font-size:14px">Cuprins indisponibil</p>'; return; }
   toc.forEach(item => {
     const btn = document.createElement('button');
-    btn.style.cssText = 'width:100%;text-align:left;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);font-family:var(--font-body);font-size:14px;cursor:pointer;transition:all 0.2s;';
-    btn.textContent = item.label || item.title || '';
-    btn.onmouseenter = () => btn.style.borderColor = 'var(--accent)';
-    btn.onmouseleave = () => btn.style.borderColor = 'var(--border)';
-    btn.onclick = () => {
-      if (format === 'epub' && S.epubRendition) S.epubRendition.display(item.href);
-      closePanel('panel-toc');
-    };
+    btn.style.cssText='width:100%;text-align:left;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);font-family:var(--font-body);font-size:14px;cursor:pointer;transition:all .2s;';
+    btn.textContent = item.label||item.title||'';
+    btn.onclick = () => { if(S.epubRend) S.epubRend.display(item.href); closePanel('pt'); };
     list.appendChild(btn);
-    if (item.subitems) item.subitems.forEach(sub => {
-      const s = btn.cloneNode(false);
-      s.style.paddingLeft = '26px';
-      s.style.fontSize = '13px';
-      s.textContent = sub.label || sub.title || '';
-      s.onclick = () => {
-        if (format === 'epub' && S.epubRendition) S.epubRendition.display(sub.href);
-        closePanel('panel-toc');
-      };
-      list.appendChild(s);
-    });
   });
 }
 
-function openTOC() { openPanel('panel-toc'); }
+// ── NAVIGATION ──
+function rdrPrev() { if(S.fmt==='epub'&&S.epubRend) S.epubRend.prev(); else pdfPrev(); showHud(); }
+function rdrNext() { if(S.fmt==='epub'&&S.epubRend) S.epubRend.next(); else pdfNext(); showHud(); }
+window.rdrPrev = rdrPrev; window.rdrNext = rdrNext;
 
-// ══════════════════════════════════
-// SETTINGS
-// ══════════════════════════════════
-function openSettings() { openPanel('panel-settings'); }
+// ── HUD ──
+function showHud()  { S.hudOn=true;  document.getElementById('reader-hud').classList.remove('hud-off'); document.getElementById('reader-footer').classList.remove('hud-off'); resetHud(); }
+function hideHud()  { S.hudOn=false; document.getElementById('reader-hud').classList.add('hud-off');    document.getElementById('reader-footer').classList.add('hud-off'); }
+function resetHud() { clearTimeout(S.hudTimer); S.hudTimer = setTimeout(hideHud, 4000); }
 
-function setTheme(theme) {
-  S.settings.theme = theme;
-  document.body.className = theme === 'default' ? '' : `theme-${theme}`;
-  document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('active', s.dataset.theme === theme));
-  applyEpubTheme();
-  saveSettingsLocal();
-}
-
-function changeFontSize(delta) {
-  S.settings.fontSize = Math.max(14, Math.min(32, S.settings.fontSize + delta));
-  document.getElementById('font-size-display').textContent = S.settings.fontSize + 'px';
-  applyEpubTheme();
-  saveSettingsLocal();
-}
-
-function setFont(key, family) {
-  S.settings.fontFamily = family;
-  S.settings.fontKey = key;
-  document.querySelectorAll('.font-opt').forEach(b => b.classList.toggle('active', b.dataset.font === key));
-  applyEpubTheme();
-  saveSettingsLocal();
-}
-
-function setLineHeight(lh, btn) {
-  S.settings.lineHeight = lh;
-  document.querySelectorAll('.lh-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  applyEpubTheme();
-  saveSettingsLocal();
-}
-
-function applySettingsToDOM() {
-  if (S.settings.theme && S.settings.theme !== 'default') {
-    document.body.classList.add('theme-' + S.settings.theme);
-  }
-  document.getElementById('font-size-display').textContent = S.settings.fontSize + 'px';
-  document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('active', s.dataset.theme === (S.settings.theme || 'default')));
-  document.querySelectorAll('.font-opt').forEach(b => b.classList.toggle('active', b.dataset.font === S.settings.fontKey));
-}
-
-// ══════════════════════════════════
-// DROPBOX
-// ══════════════════════════════════
-document.getElementById('btn-dropbox-open').onclick = () => openPanel('panel-dropbox');
-
-function dropboxConnect() {
-  if (!window.Dropbox) { showToast('Adaugă Dropbox App Key în index.html'); return; }
-  window.Dropbox.choose({
-    success: async (files) => {
-      for (const file of files) {
-        try {
-          showToast('Se descarcă: ' + file.name + '…');
-          const resp = await fetch(file.link);
-          const buffer = await resp.arrayBuffer();
-          const f = new File([buffer], file.name);
-          await addBookFromFile(f);
-        } catch(e) { showToast('Eroare la descărcare: ' + file.name); }
-      }
-      renderLibrary();
-      closePanel('panel-dropbox');
-    },
-    cancel: () => {},
-    linkType: 'direct',
-    multiselect: true,
-    extensions: ['.epub', '.pdf'],
-  });
-}
-
-// ══════════════════════════════════
-// HUD AUTO-HIDE
-// ══════════════════════════════════
-function showHud() {
-  S.hudVisible = true;
-  document.getElementById('reader-hud').classList.remove('hidden-hud');
-  document.getElementById('reader-footer').classList.remove('hidden-hud');
-  resetHudTimer();
-}
-
-function hideHud() {
-  S.hudVisible = false;
-  document.getElementById('reader-hud').classList.add('hidden-hud');
-  document.getElementById('reader-footer').classList.add('hidden-hud');
-}
-
-function resetHudTimer() {
-  clearTimeout(S.hudTimer);
-  S.hudTimer = setTimeout(hideHud, 4000);
-}
-
-// Tap centru = toggle HUD
-document.getElementById('screen-reader').addEventListener('click', (e) => {
+document.getElementById('screen-reader').addEventListener('click', e => {
   const x = e.clientX / window.innerWidth;
-  if (x > 0.22 && x < 0.78) {
-    S.hudVisible ? hideHud() : showHud();
-    clearTimeout(S.hudTimer);
-  }
+  if (x > 0.22 && x < 0.78) { S.hudOn ? hideHud() : showHud(); clearTimeout(S.hudTimer); }
 });
 
-// ══════════════════════════════════
-// SCREEN NAV
-// ══════════════════════════════════
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => {
-    s.classList.toggle('hidden', s.id !== id);
-  });
+// ── SETTINGS ──
+function setTheme(t) {
+  S.cfg.theme = t;
+  document.body.className = t==='default' ? '' : 't-'+t;
+  document.querySelectorAll('.tswatch').forEach(s => s.classList.toggle('active', s.dataset.t===t));
+  applyEpubTheme(); saveCfg();
+}
+function chgFont(d) {
+  S.cfg.fs = Math.max(14, Math.min(32, S.cfg.fs+d));
+  document.getElementById('fsval').textContent = S.cfg.fs+'px';
+  applyEpubTheme(); saveCfg();
+}
+function setFont(k, ff) {
+  S.cfg.fk=k; S.cfg.ff=ff;
+  document.querySelectorAll('.font-opt').forEach(b => b.classList.toggle('active', b.dataset.fk===k));
+  applyEpubTheme(); saveCfg();
+}
+function setLH(v, btn) {
+  S.cfg.lh=v;
+  document.querySelectorAll('.lhbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyEpubTheme(); saveCfg();
+}
+window.setTheme=setTheme; window.chgFont=chgFont; window.setFont=setFont; window.setLH=setLH;
+
+function applyCfgDOM() {
+  if (S.cfg.theme && S.cfg.theme!=='default') document.body.classList.add('t-'+S.cfg.theme);
+  document.getElementById('fsval').textContent = S.cfg.fs+'px';
+  document.querySelectorAll('.tswatch').forEach(s => s.classList.toggle('active', s.dataset.t===(S.cfg.theme||'default')));
+  document.querySelectorAll('.font-opt').forEach(b => b.classList.toggle('active', b.dataset.fk===S.cfg.fk));
 }
 
-document.getElementById('btn-back').onclick = () => {
-  if (S.epubRendition) { try { S.epubRendition.destroy(); } catch(e){} S.epubRendition = null; }
-  S.pdfDoc = null;
-  document.getElementById('pdf-nav').classList.add('hidden');
-  document.getElementById('epub-viewer').innerHTML = '';
-  document.getElementById('pdf-viewer').innerHTML = '';
-  showHud();
-  showScreen('screen-library');
-  renderLibrary();
+// ── DROPBOX ──
+window.dropboxPick = function() {
+  if (!window.Dropbox) { showToast('Adaugă Dropbox App Key în fișier'); return; }
+  window.Dropbox.choose({
+    success: async files => {
+      for (const f of files) {
+        showToast('Se descarcă: '+f.name+'…');
+        try {
+          const buf = await (await fetch(f.link)).arrayBuffer();
+          await addFile(new File([buf], f.name));
+        } catch(e) { showToast('Eroare la descărcare'); }
+      }
+      renderLib();
+    },
+    cancel: ()=>{}, linkType:'direct', multiselect:true, extensions:['.epub','.pdf']
+  });
 };
 
-// ══════════════════════════════════
-// PANELS
-// ══════════════════════════════════
-function openPanel(id) { document.getElementById(id).classList.add('open'); }
-function closePanel(id) { document.getElementById(id).classList.remove('open'); }
-function panelOutsideClick(e, id) { if (e.target.id === id) closePanel(id); }
+// ── FULLSCREEN ──
+window.toggleFullscreen = function() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {
+      showToast('Folosește „Add to Home Screen" pentru fullscreen pe iOS');
+    });
+  } else { document.exitFullscreen(); }
+};
 
-// ══════════════════════════════════
-// LOADER
-// ══════════════════════════════════
-function showLoader() { document.getElementById('loader').classList.remove('done'); }
-function hideLoader2() { document.getElementById('loader').classList.add('done'); }
-
-// ══════════════════════════════════
-// TOAST
-// ══════════════════════════════════
-let _toastTimer;
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
-}
-
-// ══════════════════════════════════
-// UTILS
-// ══════════════════════════════════
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-
-// ══════════════════════════════════
-// PULL TO REFRESH
-// ══════════════════════════════════
+// ── PULL TO REFRESH ──
 (function() {
-  let startY = 0, pulling = false, triggered = false;
-  const threshold = 80;
-
-  document.addEventListener('touchstart', (e) => {
-    const libScreen = document.getElementById('screen-library');
-    if (libScreen.classList.contains('hidden')) return;
-    const grid = document.getElementById('lib-grid');
-    if (grid.scrollTop > 0) return;
-    startY = e.touches[0].clientY;
-    pulling = true;
-    triggered = false;
-  }, { passive: true });
-
-  document.addEventListener('touchmove', (e) => {
+  let sy=0, pulling=false, triggered=false;
+  const THR = 80;
+  document.addEventListener('touchstart', e => {
+    if (!document.getElementById('screen-library').classList.contains('hidden') &&
+        document.getElementById('lib-grid').scrollTop <= 0) {
+      sy = e.touches[0].clientY; pulling=true; triggered=false;
+    }
+  }, { passive:true });
+  document.addEventListener('touchmove', e => {
     if (!pulling) return;
-    const dy = e.touches[0].clientY - startY;
+    const dy = e.touches[0].clientY - sy;
     if (dy < 10) return;
-    const ptr = document.getElementById('ptr-indicator');
-    const pct = Math.min(dy / threshold, 1);
-    if (dy > 20) {
-      ptr.classList.add('visible');
-      document.getElementById('ptr-text').textContent =
-        dy > threshold ? 'Eliberează pentru reîncărcare' : 'Trage pentru reîncărcare';
-    }
-    if (dy > threshold && !triggered) triggered = true;
-  }, { passive: true });
-
+    const ptr = document.getElementById('ptr');
+    ptr.classList.add('show');
+    document.getElementById('ptr-txt').textContent = dy>THR ? 'Eliberează pentru reîncărcare' : 'Trage pentru reîncărcare';
+    if (dy > THR) triggered=true;
+  }, { passive:true });
   document.addEventListener('touchend', () => {
-    if (!pulling) return;
-    pulling = false;
-    const ptr = document.getElementById('ptr-indicator');
-    ptr.classList.remove('visible');
-    if (triggered) {
-      showToast('Se reîncarcă...');
-      setTimeout(() => location.reload(), 300);
-    }
-    triggered = false;
+    if (!pulling) return; pulling=false;
+    document.getElementById('ptr').classList.remove('show');
+    if (triggered) { showToast('Se reîncarcă...'); setTimeout(() => location.reload(), 300); }
+    triggered=false;
   });
 })();
 
-// ══════════════════════════════════
-// FULLSCREEN
-// ══════════════════════════════════
-function toggleFullscreen() {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(() => {
-      // Pe iOS nu merge fullscreen API — folosim scroll trick
-      window.scrollTo(0, 1);
-      showToast('Folosește „Add to Home Screen" pentru ecran complet pe iOS');
-    });
-  } else {
-    document.exitFullscreen();
-  }
+// ── PANELS ──
+function openPanel(id)  { document.getElementById(id).classList.add('open'); }
+function closePanel(id) { document.getElementById(id).classList.remove('open'); }
+window.openPanel=openPanel; window.closePanel=closePanel;
+
+// ── SCREENS ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('hidden', s.id!==id));
 }
 
-// PDF.js global init
-window.addEventListener('load', () => {
-  if (window.pdfjsLib) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  }
-});
-</script>
+document.getElementById('btn-back').onclick = () => {
+  if (S.epubRend) { try { S.epubRend.destroy(); } catch(e){} S.epubRend=null; }
+  S.pdfDoc=null;
+  document.getElementById('pdf-nav').classList.add('hidden');
+  document.getElementById('epub-viewer').innerHTML='';
+  document.getElementById('pdf-viewer').innerHTML='';
+  showHud(); showScreen('screen-library'); renderLib();
+};
 
-<!-- PDF.js non-module for compatibility -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>
-if (window.pdfjsLib) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+// ── TOAST ──
+let _tt;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'), 2800);
 }
-</script>
+window.showToast=showToast;
 
+// ── UTILS ──
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
 </body>
 </html>
