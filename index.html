@@ -3,20 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Doby Books - Professional Cloud Reader</title>
+    <title>Doby Books - Stabil</title>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
-        import { getFirestore, doc, setDoc, collection, query, orderBy, onSnapshot, deleteDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
-        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js';
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+        import { getFirestore, doc, setDoc, collection, query, orderBy, onSnapshot, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+        import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyA5gtr-dyzd_nrW7Qn8mID_866lm1djGas",
@@ -30,216 +26,124 @@
         const app = initializeApp(firebaseConfig);
         window._fb = { 
             auth: getAuth(app), db: getFirestore(app), storage: getStorage(app), provider: new GoogleAuthProvider(),
-            signInWithPopup, signOut, onAuthStateChanged, doc, setDoc, collection, query, orderBy, onSnapshot, deleteDoc, updateDoc, ref, uploadBytes, getDownloadURL, deleteObject 
+            signInWithPopup, onAuthStateChanged, doc, setDoc, collection, query, orderBy, onSnapshot, updateDoc, ref, uploadBytes, getDownloadURL 
         };
     </script>
 
     <style>
-        :root { --bg: #f4ecd8; --text: #2c241a; --accent: #8b5e2a; --card: #e8dfcc; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Crimson Pro', serif; }
+        :root { --bg: #f4ecd8; --text: #2c241a; --accent: #8b5e2a; }
+        body { margin: 0; background: var(--bg); font-family: sans-serif; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px; }
+        .card { background: #e8dfcc; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         
-        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .logo { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: bold; color: var(--accent); }
-
-        .tab-nav { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; }
-        .tab-btn { background: var(--card); border: 1px solid rgba(0,0,0,0.1); padding: 8px 18px; border-radius: 20px; cursor: pointer; color: var(--text); font-weight: 600; white-space: nowrap; }
-        .tab-btn.active { background: var(--accent); color: white; }
-
-        .btn-main { background: var(--accent); color: white; border: none; padding: 14px 28px; border-radius: 30px; cursor: pointer; font-weight: bold; display: block; margin: 0 auto 30px; font-size: 16px; }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 25px; }
-        .card { cursor: pointer; position: relative; transition: 0.3s; }
-        .cover { aspect-ratio: 2/3; background: #dcd2bb; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.1); position: relative; background-size: cover; background-position: center; border: 1px solid rgba(0,0,0,0.05); }
-        
-        .prog-circle { position: absolute; bottom: 10px; right: 10px; width: 45px; height: 45px; background: rgba(30,25,20,0.92); border: 2.5px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px; z-index: 10; }
-        .title { font-size: 14px; margin-top: 10px; text-align: center; font-weight: 600; display: block; }
-
-        /* CITITOR */
+        /* CITITOR - PRIORITATE MAXIMA */
         #reader { position: fixed; inset: 0; z-index: 9999; background: var(--bg); display: none; flex-direction: column; }
-        .nav { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid rgba(0,0,0,0.05); background: rgba(255,255,255,0.2); }
-        #viewer-box { flex: 1; position: relative; padding: 10px; }
-        #epub-render { height: 100%; width: 100%; }
-
-        /* NAV BUTOANE PENTRU ANDROID/WINDOWS */
-        .page-ctrl { display: flex; justify-content: center; gap: 40px; padding: 15px; background: var(--bg); border-top: 1px solid rgba(0,0,0,0.05); }
-        .nav-btn { background: var(--accent); color: white; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; }
-
-        .btn-del { position: absolute; top: -10px; left: -10px; background: #ff4444; color: white; border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; z-index: 20; font-weight: bold; }
-        #msg { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #2c241a; color: #fff; padding: 10px 20px; border-radius: 25px; display: none; z-index: 10000; font-size: 14px; }
+        #viewer { flex: 1; width: 100%; height: 100%; }
+        .nav-bar { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        .controls { padding: 15px; display: flex; justify-content: center; gap: 20px; border-top: 1px solid rgba(0,0,0,0.1); }
+        button { padding: 10px 20px; cursor: pointer; background: var(--accent); color: white; border: none; border-radius: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="app-library" class="container">
-        <div class="header">
-            <div class="logo">DOBY BOOKS</div>
-            <div id="auth-ui"></div>
-        </div>
-
-        <button class="btn-main" onclick="document.getElementById('file-input').click()">+ ADAUGĂ CARTE ÎN CLOUD</button>
-
-        <div class="tab-nav">
-            <button class="tab-btn active" id="filter-all" onclick="setFilter('all')">Toate</button>
-            <button class="tab-btn" id="filter-reading" onclick="setFilter('reading')">În lucru</button>
-            <button class="tab-btn" id="filter-done" onclick="setFilter('done')">Finalizate</button>
-        </div>
-
+    <div id="library" class="container">
+        <h2 style="color: var(--accent);">Doby Books</h2>
+        <div id="auth-zone"></div>
+        <button onclick="document.getElementById('file-in').click()" style="margin: 20px 0;">+ ADAUGĂ EPUB</button>
         <div class="grid" id="book-grid"></div>
     </div>
 
     <div id="reader">
-        <div class="nav">
-            <button class="tab-btn" onclick="closeReader()">← Înapoi</button>
-            <div id="nav-pct" style="font-weight:bold; font-size: 18px; color: var(--accent);">0%</div>
-            <div style="width: 80px;"></div>
+        <div class="nav-bar">
+            <button onclick="closeReader()">← ÎNAPOI</button>
+            <div id="pct">0%</div>
         </div>
-        <div id="viewer-box">
-            <div id="epub-render"></div>
-        </div>
-        <div class="page-ctrl">
-            <button class="nav-btn" onclick="pagePrev()">Înapoi</button>
-            <button class="nav-btn" onclick="pageNext()">Înainte</button>
+        <div id="viewer"></div>
+        <div class="controls">
+            <button onclick="prev()">ÎNAPOI</button>
+            <button onclick="next()">ÎNAINTE</button>
         </div>
     </div>
 
-    <input type="file" id="file-input" accept=".epub,.pdf" hidden onchange="handleUpload(event)">
-    <div id="msg"></div>
+    <input type="file" id="file-in" accept=".epub" hidden onchange="upload(event)">
 
     <script>
-        let store = { user: null, books: [], current: null, rend: null, filter: 'all' };
+        let S = { user: null, books: [], rendition: null, currentBook: null };
 
         window.addEventListener('DOMContentLoaded', () => {
             const checkFB = setInterval(() => {
                 if (window._fb) {
                     clearInterval(checkFB);
                     window._fb.onAuthStateChanged(window._fb.auth, user => {
-                        store.user = user;
+                        S.user = user;
                         if (user) {
-                            document.getElementById('auth-ui').innerHTML = `<img src="${user.photoURL}" style="width:35px; border-radius:50%; border:2px solid var(--accent);">`;
-                            initData();
+                            document.getElementById('auth-zone').innerHTML = `Salut, ${user.displayName}`;
+                            loadBooks();
                         } else {
-                            document.getElementById('auth-ui').innerHTML = `<button class="tab-btn" onclick="handleLogin()">Login</button>`;
+                            document.getElementById('auth-zone').innerHTML = `<button onclick="window._fb.signInWithPopup(window._fb.auth, window._fb.provider)">Login cu Google</button>`;
                         }
                     });
                 }
             }, 500);
         });
 
-        // Navigare Windows (Tastatură)
-        window.addEventListener('keydown', (e) => {
-            if (document.getElementById('reader').style.display === 'flex') {
-                if (e.key === "ArrowLeft") pagePrev();
-                if (e.key === "ArrowRight") pageNext();
-            }
-        });
-
-        async function handleLogin() { try { await window._fb.signInWithPopup(window._fb.auth, window._fb.provider); } catch(e) { console.error(e); } }
-
-        function initData() {
-            const q = window._fb.query(window._fb.collection(window._fb.db, 'users', store.user.uid, 'books'), window._fb.orderBy('addedAt', 'desc'));
-            window._fb.onSnapshot(q, snap => {
-                store.books = snap.docs.map(d => d.data());
-                renderGrid();
+        async function upload(e) {
+            const file = e.target.files[0];
+            if (!file || !S.user) return;
+            const id = 'b' + Date.now();
+            const sRef = window._fb.ref(window._fb.storage, `books/${S.user.uid}/${id}.epub`);
+            await window._fb.uploadBytes(sRef, file);
+            const url = await window._fb.getDownloadURL(sRef);
+            await window._fb.setDoc(window._fb.doc(window._fb.db, 'users', S.user.uid, 'books', id), {
+                id, title: file.name, url, progress: 0, addedAt: Date.now()
             });
         }
 
-        async function handleUpload(e) {
-            const file = e.target.files[0];
-            if (!file || !store.user) return;
-            const id = 'b_' + Date.now();
-            const ext = file.name.split('.').pop().toLowerCase();
-            
-            toast("Se trimite în Cloud...");
-            try {
-                const sRef = window._fb.ref(window._fb.storage, `books/${store.user.uid}/${id}.${ext}`);
-                await window._fb.uploadBytes(sRef, file);
-                const url = await window._fb.getDownloadURL(sRef);
-
-                await window._fb.setDoc(window._fb.doc(window._fb.db, 'users', store.user.uid, 'books', id), {
-                    id, title: file.name.replace(/\.[^/.]+$/, ""), url, format: ext, progress: 0, addedAt: Date.now()
-                });
-                toast("Gata!");
-            } catch(err) { toast("Eroare la încărcare."); }
-        }
-
-        function setFilter(f) {
-            store.filter = f;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('filter-' + f).classList.add('active');
-            renderGrid();
-        }
-
-        function renderGrid() {
-            const grid = document.getElementById('book-grid');
-            let list = store.books;
-            if (store.filter === 'reading') list = store.books.filter(b => b.progress > 0 && b.progress < 0.95);
-            if (store.filter === 'done') list = store.books.filter(b => b.progress >= 0.95);
-
-            grid.innerHTML = list.map(b => `
-                <div class="card" onclick="openReader('${b.id}')">
-                    <button class="btn-del" onclick="deleteBook('${b.id}', '${b.format}', event)">✕</button>
-                    <div class="cover" style="background-image: url('${b.cover || ''}')">
-                        <div class="prog-circle">${Math.round((b.progress || 0) * 100)}%</div>
+        function loadBooks() {
+            const q = window._fb.query(window._fb.collection(window._fb.db, 'users', S.user.uid, 'books'), window._fb.orderBy('addedAt', 'desc'));
+            window._fb.onSnapshot(q, snap => {
+                S.books = snap.docs.map(d => d.data());
+                document.getElementById('book-grid').innerHTML = S.books.map(b => `
+                    <div class="card" onclick="openBook('${b.id}')">
+                        <div style="height: 100px; display: flex; align-items: center; justify-content: center;">📖</div>
+                        <div style="font-size: 12px; font-weight: bold;">${b.title}</div>
+                        <div style="color: var(--accent);">${Math.round(b.progress * 100)}%</div>
                     </div>
-                    <span class="title">${b.title}</span>
-                </div>
-            `).join('');
+                `).join('');
+            });
         }
 
-        async function openReader(id) {
-            const book = store.books.find(b => b.id === id);
-            store.current = book;
+        async function openBook(id) {
+            const book = S.books.find(b => b.id === id);
+            S.currentBook = book;
             document.getElementById('reader').style.display = 'flex';
-            document.getElementById('epub-render').innerHTML = "";
+            
+            // Initializare EPUB
+            const epub = ePub(book.url);
+            S.rendition = epub.renderTo("viewer", { width: "100%", height: "100%", flow: "paginated" });
+            
+            // Afisare pagina salvata sau inceputul
+            await S.rendition.display(book.cfi || undefined);
 
-            if (book.format === 'epub') {
-                const epub = ePub(book.url);
-                store.rend = epub.renderTo("epub-render", { width: "100%", height: "100%", flow: "paginated" });
-                await store.rend.display(book.cfi || undefined);
-
-                // Coperta se procesează în fundal fără a bloca UI-ul
-                if (!book.cover) {
-                    epub.coverUrl().then(cUrl => {
-                        if (cUrl) window._fb.updateDoc(window._fb.doc(window._fb.db, 'users', store.user.uid, 'books', id), { cover: cUrl });
-                    }).catch(() => {});
-                }
-
-                store.rend.on("relocated", loc => {
-                    const p = epub.locations.percentageFromCfi(loc.start.cfi);
-                    saveProgress(p, loc.start.cfi);
+            // Salvare progres
+            S.rendition.on("relocated", loc => {
+                const p = epub.locations.percentageFromCfi(loc.start.cfi);
+                document.getElementById('pct').textContent = Math.round(p * 100) + "%";
+                window._fb.updateDoc(window._fb.doc(window._fb.db, 'users', S.user.uid, 'books', id), { 
+                    progress: p || 0, 
+                    cfi: loc.start.cfi 
                 });
-                epub.ready.then(() => epub.locations.generate(1024));
-            } else {
-                document.getElementById('epub-render').innerHTML = `<iframe src="${book.url}" style="width:100%; height:100%; border:none;"></iframe>`;
-            }
+            });
+
+            epub.ready.then(() => epub.locations.generate(1024));
         }
 
-        function pagePrev() { if(store.rend) store.rend.prev(); }
-        function pageNext() { if(store.rend) store.rend.next(); }
-
-        async function saveProgress(p, cfi) {
-            if (!store.current || isNaN(p)) return;
-            document.getElementById('nav-pct').textContent = Math.round(p * 100) + "%";
-            await window._fb.updateDoc(window._fb.doc(window._fb.db, 'users', store.user.uid, 'books', store.current.id), { progress: p, cfi: cfi });
-        }
-
+        function prev() { if(S.rendition) S.rendition.prev(); }
+        function next() { if(S.rendition) S.rendition.next(); }
         function closeReader() {
-            if (store.rend) { store.rend.destroy(); store.rend = null; }
+            if(S.rendition) S.rendition.destroy();
             document.getElementById('reader').style.display = 'none';
-        }
-
-        async function deleteBook(id, ext, e) {
-            e.stopPropagation();
-            if (!confirm("Ștergi cartea?")) return;
-            await window._fb.deleteDoc(window._fb.doc(window._fb.db, 'users', store.user.uid, 'books', id));
-            await window._fb.deleteObject(window._fb.ref(window._fb.storage, `books/${store.user.uid}/${id}.${ext}`));
-        }
-
-        function toast(m) {
-            const t = document.getElementById('msg');
-            t.textContent = m; t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 3000);
         }
     </script>
 </body>
