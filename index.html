@@ -37,43 +37,44 @@
     </script>
 
     <style>
-        :root { --bg: #f4ecd8; --text: #2c241a; --accent: #8b5e2a; --surface: #ffffff; }
-        body.theme-dark { --bg: #1a1a1a; --text: #d1d1d1; --surface: #252525; }
+        :root { --bg: #f4ecd8; --text: #2c241a; --accent: #8b5e2a; }
+        body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: 'Crimson Pro', serif; margin: 0; padding: 0; }
         
-        body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: 'Crimson Pro', serif; margin: 0; }
         .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
-        .logo { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--accent); }
+        .logo { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--accent); font-weight: bold; }
 
-        .lib-grid { padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .lib-grid { padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto; }
         
-        .book-card { cursor: pointer; position: relative; }
+        .book-card { cursor: pointer; position: relative; width: 100%; }
         .cover-wrapper { 
-            aspect-ratio: 2/3; background: #ccc; border-radius: 8px; overflow: hidden; 
-            box-shadow: 0 8px 15px rgba(0,0,0,0.1); position: relative;
-            background-size: cover; background-position: center;
+            aspect-ratio: 2/3; background: #d0c4af; border-radius: 10px; overflow: hidden; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15); position: relative;
+            background-size: cover; background-position: center; border: 1px solid rgba(0,0,0,0.05);
         }
         
         .progress-badge { 
-            position: absolute; bottom: 8px; right: 8px; 
-            width: 40px; height: 40px; background: rgba(44,36,26,0.9); 
-            border: 2px solid var(--accent); border-radius: 50%; 
+            position: absolute; bottom: 12px; right: 12px; 
+            width: 45px; height: 45px; background: rgba(30,25,20,0.95); 
+            border: 2.5px solid var(--accent); border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
-            color: white; font-size: 11px; font-weight: bold; z-index: 5;
+            color: #fff; font-size: 13px; font-weight: bold; z-index: 10;
         }
 
-        .book-title { font-size: 13px; margin-top: 8px; font-weight: 600; text-align: center; }
+        .book-title { font-size: 14px; margin-top: 10px; font-weight: 600; text-align: center; color: var(--text); display: block; }
 
-        /* CITITOR FIXED */
-        #screen-reader { position: fixed; inset: 0; z-index: 2000; background: var(--bg); display: none; flex-direction: column; }
-        .reader-hud { height: 50px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        /* CITITOR */
+        #screen-reader { position: fixed; inset: 0; z-index: 3000; background: var(--bg); display: none; flex-direction: column; }
+        .reader-hud { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: rgba(255,255,255,0.1); border-bottom: 1px solid rgba(0,0,0,0.05); }
         #viewer-container { flex: 1; position: relative; }
         #viewer { height: 100%; width: 100%; }
 
         .tap-zone { position: absolute; top: 0; bottom: 0; width: 30%; z-index: 100; cursor: pointer; }
         .tap-left { left: 0; } .tap-right { right: 0; }
 
-        .del-btn { position: absolute; top: -8px; left: -8px; background: #ff4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; z-index: 10; font-size: 12px; }
-        .btn-add { background: var(--accent); color: white; padding: 10px 20px; border-radius: 20px; border: none; cursor: pointer; display: block; margin: 10px auto; }
+        .del-btn { position: absolute; top: -10px; left: -10px; background: #ff4444; color: white; border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; z-index: 20; font-weight: bold; }
+        .btn-add-main { display: block; margin: 20px auto; background: var(--accent); color: white; border: none; padding: 12px 30px; border-radius: 30px; font-weight: bold; cursor: pointer; font-family: inherit; font-size: 16px; }
+
+        #toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #2c241a; color: #fff; padding: 10px 20px; border-radius: 25px; display: none; z-index: 4000; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -81,17 +82,19 @@
     <div id="screen-library">
         <div class="header">
             <div class="logo">DOBY BOOKS</div>
-            <div id="user-area"><button onclick="login()" style="border:none; background:none; cursor:pointer;">🔑 Login</button></div>
+            <div id="user-area"><button onclick="login()" style="background:none; border:1px solid var(--accent); padding:5px 15px; border-radius:15px; cursor:pointer;">Login</button></div>
         </div>
-        <button class="btn-add" onclick="document.getElementById('file-input').click()">+ ADAUGĂ CARTE</button>
+        
+        <button class="btn-add-main" onclick="triggerFileInput()">+ ADAUGĂ CARTE</button>
+        
         <div class="lib-grid" id="lib-grid"></div>
     </div>
 
     <div id="screen-reader">
         <div class="reader-hud">
-            <button onclick="closeBook()" style="border:none; background:none; color:var(--accent); font-weight:bold; cursor:pointer;">← Bibliotecă</button>
-            <div id="reader-pct">0%</div>
-            <div style="width: 60px;"></div>
+            <button onclick="closeBook()" style="background:none; border:none; font-weight:bold; cursor:pointer; color:var(--accent);">← ÎNAPOI</button>
+            <div id="reader-pct" style="font-weight:bold;">0%</div>
+            <div style="width: 50px;"></div>
         </div>
         <div id="viewer-container">
             <div class="tap-zone tap-left" onclick="prevPage()"></div>
@@ -101,11 +104,12 @@
     </div>
 
     <input type="file" id="file-input" accept=".epub,.pdf" hidden onchange="uploadFile(event)">
-    <div id="toast" style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:black; color:white; padding:8px 16px; border-radius:20px; display:none; z-index:3000;"></div>
+    <div id="toast"></div>
 
     <script>
         let S = { user: null, books: [], currentBook: null, rendition: null };
 
+        // 1. Initializare Auth
         window.addEventListener('DOMContentLoaded', () => {
             const check = setInterval(() => {
                 if (window._fb) {
@@ -113,7 +117,7 @@
                     window._fb.onAuthStateChanged(window._fb.auth, user => {
                         S.user = user;
                         if (user) {
-                            document.getElementById('user-area').innerHTML = `<img src="${user.photoURL}" style="width:30px; border-radius:50%;">`;
+                            document.getElementById('user-area').innerHTML = `<img src="${user.photoURL}" style="width:35px; border-radius:50%; border:2px solid var(--accent);">`;
                             listenBooks();
                         }
                     });
@@ -121,13 +125,19 @@
             }, 500);
         });
 
-        // Navigare tastatură pentru Windows
+        // 2. Control Tastatura
         window.addEventListener('keydown', e => {
             if (e.key === "ArrowLeft") prevPage();
             if (e.key === "ArrowRight") nextPage();
         });
 
-        async function login() { await window._fb.signInWithPopup(window._fb.auth, window._fb.provider); }
+        // 3. Functii de Baza
+        async function login() { 
+            try { await window._fb.signInWithPopup(window._fb.auth, window._fb.provider); } 
+            catch(e) { msg("Eroare Login"); }
+        }
+
+        function triggerFileInput() { document.getElementById('file-input').click(); }
 
         function listenBooks() {
             const q = window._fb.query(window._fb.collection(window._fb.db, 'users', S.user.uid, 'books'), window._fb.orderBy('addedAt', 'desc'));
@@ -153,7 +163,7 @@
                     id, title: file.name.replace(/\.[^/.]+$/, ""), url, format: ext, progress: 0, addedAt: Date.now()
                 });
                 msg("Finalizat!");
-            } catch(err) { msg("Eroare la upload"); }
+            } catch(err) { msg("Eroare Upload"); }
         }
 
         function renderLibrary() {
@@ -164,13 +174,14 @@
                     <div class="cover-wrapper" style="background-image: url('${b.cover || ''}')">
                         <div class="progress-badge">${Math.round((b.progress || 0) * 100)}%</div>
                     </div>
-                    <div class="book-title">${b.title}</div>
+                    <span class="book-title">${b.title}</span>
                 </div>
             `).join('');
         }
 
         async function openBook(id) {
             const book = S.books.find(b => b.id === id);
+            if (!book) return;
             S.currentBook = book;
             document.getElementById('screen-reader').style.display = 'flex';
 
@@ -179,7 +190,7 @@
                 S.rendition = epub.renderTo("viewer", { width: "100%", height: "100%", flow: "paginated" });
                 await S.rendition.display(book.cfi || undefined);
 
-                // Încercăm să extragem coperta DOAR dacă nu o avem deja
+                // Extragere coperta daca lipseste
                 if (!book.cover) {
                     epub.coverUrl().then(url => {
                         if (url) window._fb.updateDoc(window._fb.doc(window._fb.db, 'users', S.user.uid, 'books', id), { cover: url });
@@ -213,7 +224,7 @@
 
         async function deleteBook(id, ext, e) {
             e.stopPropagation();
-            if (!confirm("Ștergi cartea?")) return;
+            if (!confirm("Ștergi definitiv?")) return;
             await window._fb.deleteDoc(window._fb.doc(window._fb.db, 'users', S.user.uid, 'books', id));
             await window._fb.deleteObject(window._fb.ref(window._fb.storage, `users/${S.user.uid}/books/${id}.${ext}`));
         }
