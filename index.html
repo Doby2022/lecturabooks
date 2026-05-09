@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Doby Books Premium</title>
+    <title>Doby Books Cloud</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 
+    <!-- Biblioteci esentiale -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
+    <!-- Firebase -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
@@ -38,198 +40,183 @@
 
     <style>
         :root { --bg: #f4ecd8; --text: #2c241a; --accent: #8b5e2a; }
-        body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: 'Crimson Pro', serif; margin: 0; padding: 0; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Crimson Pro', serif; overflow-x: hidden; }
         
-        .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
+        /* HEADER & TOOLBAR */
+        .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: 0 auto; }
         .logo { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--accent); font-weight: bold; }
+        .btn-add { background: var(--accent); color: white; border: none; padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; display: block; margin: 0 auto 20px; font-size: 16px; }
 
-        .lib-grid { padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto; }
-        
-        .book-card { cursor: pointer; position: relative; width: 100%; }
-        .cover-wrapper { 
-            aspect-ratio: 2/3; background: #d0c4af; border-radius: 10px; overflow: hidden; 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15); position: relative;
-            background-size: cover; background-position: center; border: 1px solid rgba(0,0,0,0.05);
+        /* GRID CARTI */
+        .lib-grid { padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .book-card { cursor: pointer; position: relative; transition: 0.2s; }
+        .cover-box { 
+            aspect-ratio: 2/3; background: #d0c4af; border-radius: 8px; overflow: hidden; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15); position: relative;
+            background-size: cover; background-position: center;
         }
         
-        .progress-badge { 
-            position: absolute; bottom: 12px; right: 12px; 
-            width: 45px; height: 45px; background: rgba(30,25,20,0.95); 
-            border: 2.5px solid var(--accent); border-radius: 50%; 
+        /* CERC PROGRES MARE */
+        .progress-circle { 
+            position: absolute; bottom: 10px; right: 10px; 
+            width: 42px; height: 42px; background: rgba(30,25,20,0.9); 
+            border: 2px solid var(--accent); border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
-            color: #fff; font-size: 13px; font-weight: bold; z-index: 10;
+            color: white; font-weight: bold; font-size: 12px; z-index: 5;
         }
 
-        .book-title { font-size: 14px; margin-top: 10px; font-weight: 600; text-align: center; color: var(--text); display: block; }
+        .title-label { font-size: 13px; margin-top: 8px; text-align: center; display: block; font-weight: 600; }
 
-        /* CITITOR */
-        #screen-reader { position: fixed; inset: 0; z-index: 3000; background: var(--bg); display: none; flex-direction: column; }
-        .reader-hud { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: rgba(255,255,255,0.1); border-bottom: 1px solid rgba(0,0,0,0.05); }
-        #viewer-container { flex: 1; position: relative; }
-        #viewer { height: 100%; width: 100%; }
-
+        /* CITITOR FIXED */
+        #reader-screen { position: fixed; inset: 0; z-index: 5000; background: var(--bg); display: none; flex-direction: column; }
+        .reader-nav { height: 50px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        #viewer { flex: 1; position: relative; }
+        
         .tap-zone { position: absolute; top: 0; bottom: 0; width: 30%; z-index: 100; cursor: pointer; }
-        .tap-left { left: 0; } .tap-right { right: 0; }
+        .tap-prev { left: 0; } .tap-next { right: 0; }
 
-        .del-btn { position: absolute; top: -10px; left: -10px; background: #ff4444; color: white; border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; z-index: 20; font-weight: bold; }
-        .btn-add-main { display: block; margin: 20px auto; background: var(--accent); color: white; border: none; padding: 12px 30px; border-radius: 30px; font-weight: bold; cursor: pointer; font-family: inherit; font-size: 16px; }
-
-        #toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #2c241a; color: #fff; padding: 10px 20px; border-radius: 25px; display: none; z-index: 4000; font-size: 14px; }
+        .btn-del { position: absolute; top: -8px; left: -8px; background: #ff4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; z-index: 10; font-size: 11px; }
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 8px 16px; border-radius: 20px; display: none; z-index: 6000; }
     </style>
 </head>
 <body>
 
-    <div id="screen-library">
+    <div id="lib-screen">
         <div class="header">
             <div class="logo">DOBY BOOKS</div>
-            <div id="user-area"><button onclick="login()" style="background:none; border:1px solid var(--accent); padding:5px 15px; border-radius:15px; cursor:pointer;">Login</button></div>
+            <div id="user-ui"><button onclick="login()" style="background:none; border:1px solid var(--accent); border-radius:15px; padding:5px 15px; cursor:pointer;">Login</button></div>
         </div>
-        
-        <button class="btn-add-main" onclick="triggerFileInput()">+ ADAUGĂ CARTE</button>
-        
-        <div class="lib-grid" id="lib-grid"></div>
+        <button class="btn-add" onclick="document.getElementById('file-in').click()">+ ADAUGĂ CARTE</button>
+        <div class="lib-grid" id="grid"></div>
     </div>
 
-    <div id="screen-reader">
-        <div class="reader-hud">
-            <button onclick="closeBook()" style="background:none; border:none; font-weight:bold; cursor:pointer; color:var(--accent);">← ÎNAPOI</button>
-            <div id="reader-pct" style="font-weight:bold;">0%</div>
-            <div style="width: 50px;"></div>
+    <div id="reader-screen">
+        <div class="reader-nav">
+            <button onclick="exitReader()" style="background:none; border:none; font-weight:bold; color:var(--accent); cursor:pointer;">← ÎNAPOI</button>
+            <div id="nav-pct" style="font-weight:bold;">0%</div>
+            <div style="width:50px;"></div>
         </div>
-        <div id="viewer-container">
-            <div class="tap-zone tap-left" onclick="prevPage()"></div>
-            <div class="tap-zone tap-right" onclick="nextPage()"></div>
-            <div id="viewer"></div>
+        <div id="viewer">
+            <div class="tap-zone tap-prev" onclick="goPrev()"></div>
+            <div class="tap-zone tap-next" onclick="goNext()"></div>
+            <div id="epub-area" style="height:100%;"></div>
         </div>
     </div>
 
-    <input type="file" id="file-input" accept=".epub,.pdf" hidden onchange="uploadFile(event)">
+    <input type="file" id="file-in" accept=".epub,.pdf" hidden onchange="doUpload(event)">
     <div id="toast"></div>
 
     <script>
-        let S = { user: null, books: [], currentBook: null, rendition: null };
+        let state = { user: null, books: [], current: null, rend: null };
 
-        // 1. Initializare Auth
+        // INITIALIZARE
         window.addEventListener('DOMContentLoaded', () => {
-            const check = setInterval(() => {
+            const timer = setInterval(() => {
                 if (window._fb) {
-                    clearInterval(check);
+                    clearInterval(timer);
                     window._fb.onAuthStateChanged(window._fb.auth, user => {
-                        S.user = user;
+                        state.user = user;
                         if (user) {
-                            document.getElementById('user-area').innerHTML = `<img src="${user.photoURL}" style="width:35px; border-radius:50%; border:2px solid var(--accent);">`;
-                            listenBooks();
+                            document.getElementById('user-ui').innerHTML = `<img src="${user.photoURL}" style="width:30px; border-radius:50%; border:2px solid var(--accent);">`;
+                            syncBooks();
                         }
                     });
                 }
             }, 500);
         });
 
-        // 2. Control Tastatura
-        window.addEventListener('keydown', e => {
-            if (e.key === "ArrowLeft") prevPage();
-            if (e.key === "ArrowRight") nextPage();
-        });
+        async function login() { try { await window._fb.signInWithPopup(window._fb.auth, window._fb.provider); } catch(e) { alert("Eroare Login"); } }
 
-        // 3. Functii de Baza
-        async function login() { 
-            try { await window._fb.signInWithPopup(window._fb.auth, window._fb.provider); } 
-            catch(e) { msg("Eroare Login"); }
-        }
-
-        function triggerFileInput() { document.getElementById('file-input').click(); }
-
-        function listenBooks() {
-            const q = window._fb.query(window._fb.collection(window._fb.db, 'users', S.user.uid, 'books'), window._fb.orderBy('addedAt', 'desc'));
+        function syncBooks() {
+            const q = window._fb.query(window._fb.collection(window._fb.db, 'users', state.user.uid, 'books'), window._fb.orderBy('addedAt', 'desc'));
             window._fb.onSnapshot(q, snap => {
-                S.books = snap.docs.map(d => d.data());
-                renderLibrary();
+                state.books = snap.docs.map(d => d.data());
+                renderGrid();
             });
         }
 
-        async function uploadFile(e) {
+        async function doUpload(e) {
             const file = e.target.files[0];
-            if (!file || !S.user) return;
-            const id = 'book_' + Date.now();
+            if (!file || !state.user) return;
+            const id = 'b_' + Date.now();
             const ext = file.name.split('.').pop().toLowerCase();
-            msg("Se încarcă...");
-
+            
+            showMsg("Se încarcă în Cloud...");
             try {
-                const storageRef = window._fb.ref(window._fb.storage, `users/${S.user.uid}/books/${id}.${ext}`);
-                await window._fb.uploadBytes(storageRef, file);
-                const url = await window._fb.getDownloadURL(storageRef);
+                const sRef = window._fb.ref(window._fb.storage, `books/${state.user.uid}/${id}.${ext}`);
+                await window._fb.uploadBytes(sRef, file);
+                const url = await window._fb.getDownloadURL(sRef);
 
-                await window._fb.setDoc(window._fb.doc(window._fb.db, 'users', S.user.uid, 'books', id), {
+                await window._fb.setDoc(window._fb.doc(window._fb.db, 'users', state.user.uid, 'books', id), {
                     id, title: file.name.replace(/\.[^/.]+$/, ""), url, format: ext, progress: 0, addedAt: Date.now()
                 });
-                msg("Finalizat!");
-            } catch(err) { msg("Eroare Upload"); }
+                showMsg("Gata!");
+            } catch(err) { showMsg("Eroare Upload"); }
         }
 
-        function renderLibrary() {
-            const grid = document.getElementById('lib-grid');
-            grid.innerHTML = S.books.map(b => `
-                <div class="book-card" onclick="openBook('${b.id}')">
-                    <button class="del-btn" onclick="deleteBook('${b.id}', '${b.format}', event)">✕</button>
-                    <div class="cover-wrapper" style="background-image: url('${b.cover || ''}')">
-                        <div class="progress-badge">${Math.round((b.progress || 0) * 100)}%</div>
+        function renderGrid() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = state.books.map(b => `
+                <div class="book-card" onclick="openMe('${b.id}')">
+                    <button class="btn-del" onclick="delMe('${b.id}', '${b.format}', event)">✕</button>
+                    <div class="cover-box" style="background-image: url('${b.cover || ''}')">
+                        <div class="progress-circle">${Math.round((b.progress || 0) * 100)}%</div>
                     </div>
-                    <span class="book-title">${b.title}</span>
+                    <span class="title-label">${b.title}</span>
                 </div>
             `).join('');
         }
 
-        async function openBook(id) {
-            const book = S.books.find(b => b.id === id);
-            if (!book) return;
-            S.currentBook = book;
-            document.getElementById('screen-reader').style.display = 'flex';
+        async function openMe(id) {
+            const book = state.books.find(b => b.id === id);
+            state.current = book;
+            document.getElementById('reader-screen').style.display = 'flex';
 
             if (book.format === 'epub') {
                 const epub = ePub(book.url);
-                S.rendition = epub.renderTo("viewer", { width: "100%", height: "100%", flow: "paginated" });
-                await S.rendition.display(book.cfi || undefined);
+                state.rend = epub.renderTo("epub-area", { width: "100%", height: "100%", flow: "paginated" });
+                await state.rend.display(book.cfi || undefined);
 
-                // Extragere coperta daca lipseste
+                // EXTRAGERE COPERTA (SILENT)
                 if (!book.cover) {
-                    epub.coverUrl().then(url => {
-                        if (url) window._fb.updateDoc(window._fb.doc(window._fb.db, 'users', S.user.uid, 'books', id), { cover: url });
-                    });
+                    epub.coverUrl().then(cUrl => {
+                        if (cUrl) window._fb.updateDoc(window._fb.doc(window._fb.db, 'users', state.user.uid, 'books', id), { cover: cUrl });
+                    }).catch(() => {});
                 }
 
-                S.rendition.on("relocated", loc => {
-                    const pct = epub.locations.percentageFromCfi(loc.start.cfi);
-                    saveProg(pct, loc.start.cfi);
+                state.rend.on("relocated", loc => {
+                    const p = epub.locations.percentageFromCfi(loc.start.cfi);
+                    updateProg(p, loc.start.cfi);
                 });
                 epub.ready.then(() => epub.locations.generate(1024));
             } else {
-                document.getElementById('viewer').innerHTML = `<iframe src="${book.url}" style="width:100%; height:100%; border:none;"></iframe>`;
+                document.getElementById('epub-area').innerHTML = `<iframe src="${book.url}" style="width:100%; height:100%; border:none;"></iframe>`;
             }
         }
 
-        function prevPage() { if(S.rendition) S.rendition.prev(); }
-        function nextPage() { if(S.rendition) S.rendition.next(); }
+        function goPrev() { if(state.rend) state.rend.prev(); }
+        function goNext() { if(state.rend) state.rend.next(); }
 
-        async function saveProg(p, cfi) {
-            if (!S.currentBook || isNaN(p)) return;
-            document.getElementById('reader-pct').textContent = Math.round(p * 100) + "%";
-            await window._fb.updateDoc(window._fb.doc(window._fb.db, 'users', S.user.uid, 'books', S.currentBook.id), { progress: p, cfi: cfi });
+        async function updateProg(p, cfi) {
+            if (!state.current || isNaN(p)) return;
+            document.getElementById('nav-pct').textContent = Math.round(p * 100) + "%";
+            await window._fb.updateDoc(window._fb.doc(window._fb.db, 'users', state.user.uid, 'books', state.current.id), { progress: p, cfi: cfi });
         }
 
-        function closeBook() {
-            if (S.rendition) { S.rendition.destroy(); S.rendition = null; }
-            document.getElementById('screen-reader').style.display = 'none';
-            document.getElementById('viewer').innerHTML = "";
+        function exitReader() {
+            if (state.rend) { state.rend.destroy(); state.rend = null; }
+            document.getElementById('reader-screen').style.display = 'none';
+            document.getElementById('epub-area').innerHTML = "";
         }
 
-        async function deleteBook(id, ext, e) {
+        async function delMe(id, ext, e) {
             e.stopPropagation();
-            if (!confirm("Ștergi definitiv?")) return;
-            await window._fb.deleteDoc(window._fb.doc(window._fb.db, 'users', S.user.uid, 'books', id));
-            await window._fb.deleteObject(window._fb.ref(window._fb.storage, `users/${S.user.uid}/books/${id}.${ext}`));
+            if (!confirm("Ștergi?")) return;
+            await window._fb.deleteDoc(window._fb.doc(window._fb.db, 'users', state.user.uid, 'books', id));
+            await window._fb.deleteObject(window._fb.ref(window._fb.storage, `books/${state.user.uid}/${id}.${ext}`));
         }
 
-        function msg(m) {
+        function showMsg(m) {
             const t = document.getElementById('toast');
             t.textContent = m; t.style.display = 'block';
             setTimeout(() => t.style.display = 'none', 3000);
