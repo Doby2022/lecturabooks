@@ -1442,7 +1442,7 @@ async function pdfNext() {
 function saveProgress(pct, cfi) {
   if (!S.currentBook) return;
   S.currentBook.progress = pct;
-  S.currentBook.bookmark = S.currentBook.bookmark || cfi; // nu suprascrie bookmark manual
+  S.currentBook.bookmark = cfi; // mereu salvăm poziția curentă
   S.currentBook.updatedAt = Date.now();
   updateProgressUI(pct);
   saveBooksLocal();
